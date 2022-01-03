@@ -1,0 +1,7 @@
+The main changes I made was adding labels. Outside of adding the typical labels of a title and indication of 5, 10, 15, and 20 years - 
+I added label tracking the lines on the other side. I think the graph can get particularlly confusing if you are trying to track one line 
+across the graph. With my implementation, now you have a start and an endpoint for the graph, one which indicates the name, and the other 
+which indicates the amount changed over the 20 year period. 
+So for lines like prostate with a huge drop, you can easily follow it through the percentage change on the right. 
+There was also no "values" on the Y axis that indicated the percent. I added the percent on the line for each of the of the different
+types of cancer at each of the year markers. This gives the consumer a better grasp on the cancer and the percent survival rate for each.

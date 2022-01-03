@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Problem 3</title>
+		<script type="text/javascript" src="d3.js"></script>
+		<style type="text/css">
+			#title {
+				float: center;
+    			margin-left: 800px;
+				position: absolute;
+                top: 10px; 
+            }
+		</style>
+		<h1 id="title">Migration - Europe</h1>
+	</head>
+	<body>
+		<script type="text/javascript">
+
+			let names = ["Austria", "Belgium", "France", "Germany"]
+			let colors = ["#C8102E","#FFCD00", "#0072BB", "#53504E"]
+
+			let data = [
+				[0, 2201, 7665, 191269],
+				[2540, 0, 139529, 39225],
+				[11610, 141648, 0, 215982],
+				[249001, 33783, 140948, 0]
+			]
+
+			let width = 800;
+			let height = 800;
+
+			let svg = d3.select("body")
+				.append("svg")
+				.attr("viewBox", [-width/2, -height/2, width, height])
+
+			chord = d3.chord()
+				.padAngle(.03)
+				.sortSubgroups(d3.descending)
+				.sortChords(d3.descending)
+
+			let chords = chord(data);
+
+			outerRadius = Math.min(width, height) * 0.5 - 60;
+			innerRadius = outerRadius - 10;
+
+			arc = d3.arc()
+				.innerRadius(innerRadius)
+				.outerRadius(outerRadius);
+			
+			ribbon = d3.ribbon()
+				.radius(innerRadius - 1)
+				.padAngle(1 / innerRadius)
+			
+			color = d3.scaleOrdinal(names, colors)
+
+			svg.append("g")
+				.selectAll("path")
+				.data(chords)
+				.enter()
+				.append("path")
+				.attr("d", ribbon)
+				.attr("fill", d => color(names[d.source.index]))
+				.attr("fill-opacity", .75)
+				.style("mix-blend-mode", "multiply")
+
+			let group = svg.append("g")
+				.attr("font-size", 10)
+				.attr("font-family", "sans-serif")
+				.selectAll("g")
+				.data(chords.groups)
+				.attr("id", function(d,i) { return "countryArc_"+i; })
+				.join("g");
+
+			group.append("path")
+				.attr("fill", d => color(names[d.index]))
+				.attr("id", function(d, i) { return "group" + d.index; })
+				.attr("d", arc);
+			
+			group.append("text")
+     			.attr("x", 19)
+    			.attr("dy", -5)
+  				.append("textPath")
+				.attr("xlink:href", function(d) { return "#group" + d.index; })
+				.text(function(chords, i){return names[i];});
+
+		</script>
+	</body>
+</html>

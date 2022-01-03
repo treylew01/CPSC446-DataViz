@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Auto</title>
+		<script type="text/javascript" src="d3.js"></script>
+		<style type="text/css">
+			html { 
+                font-family: "Tahoma"; 
+            }
+
+            #title {
+				float: center;
+    			margin-left: 150px;
+                top: 10px; 
+                    }
+            
+            input {
+				height: 820px;
+				width: 10px;
+
+                position: absolute; 
+				top: 180px; 
+				left: 40px; 
+
+				/* Orient vertically */
+				-webkit-appearance: slider-vertical;
+				writing-mode: bt-lr;
+			}
+            
+            .a_text{
+                font-size:17px
+            }
+			
+		
+        </style>
+        <h1 id="title">Horsepower Vs MPG</h1>
+		</style>
+	</head>
+	<body>
+        <p>
+			<input id="slider" type="range" min="0" max="22" step="1" value="0" orient="horizontal">
+		</p>
+      
+
+		<script type="text/javascript">
+
+			//Width and height
+			let w = 1000;
+			let h = 1000;
+            let padding = 100;
+		
+			let cars = [];
+           
+			let x_max = 0;
+			let y_max = 0;
+
+            let car;
+			
+            //Create SVG element
+			let svg = d3.select("body")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+
+			d3.csv("auto-mpg.csv").then( (data)=> {
+                for (let i = 0; i <= 19; i++) {
+                    car = {
+                        mpg: parseInt(Object.values(data[i])[0]),
+                        cylinders: parseInt(Object.values(data[i])[1]),
+                        dispalcement: parseInt(Object.values(data[i])[2]),
+                        horsepower: parseInt(Object.values(data[i])[3]),
+                        weight: parseInt(Object.values(data[i])[4]),
+                        acceleration: parseInt(Object.values(data[i])[5]),
+                        name: Object.values(data[i])[6],
+                        };
+                    cars.push(car);
+        
+					if ((parseInt(Object.values(data[i])[3])) >= x_max){
+							x_max = (parseInt(Object.values(data[i])[3]))
+						}
+					if ((parseInt(Object.values(data[i])[0])) >= y_max){
+							y_max = (parseInt(Object.values(data[i])[0]))
+						}
+                }
+				console.log(data);
+            
+            let xScale = d3.scaleLinear()
+								 .domain([0, 230])
+								 .range([padding, w - (padding *2)]);
+
+			let yScale = d3.scaleLinear()
+								 .domain([0, 30])
+								 .range([h - padding , padding]);
+
+            var xAxis = d3.axisBottom()
+              .scale(xScale)
+              .ticks(20);
+
+            var yAxis = d3.axisLeft()
+              .scale(yScale)
+              .ticks(20);
+
+            svg.selectAll("circle")
+			   .data(cars)
+			   .enter()
+			   .append("circle")
+			   .attr("cx", (d)=> {
+			   		return xScale(d.horsepower);
+			   })
+			   .attr("cy", (d)=> {
+			   		return yScale(d.mpg);
+			   })
+               .attr("r", (d)=> {
+			   		return (d.weight / 500);
+			   })
+            
+            svg.selectAll("svg text")
+			    .data(cars)
+			    .enter()
+			    .append("text")
+			    .attr("x", w - 150)
+			    .attr("y", (d,i)=> {return i*(h/25)+ (padding)})
+                .attr("font-size","10px")
+			    .attr("fill","black")
+                .text((d)=> {
+			   		return (d.name);
+			   })
+
+            svg.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + padding + ",0)")
+				.call(yAxis);
+			
+			svg.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(0," + (h - padding) + ")")
+				.call(xAxis);
+            
+            let labels = [];
+            let label = {
+                mpg: 5000,
+                name: "Horsepower"
+            };
+            labels.push(label);
+           
+            svg.append("text")
+                .data(labels)
+                .attr("y", h - 30)
+                .attr("x", w/2)
+                .style("text-anchor", "middle")
+                .style("font-size", "17px")
+                .text("HorsePower");
+            
+            svg.append("text")
+                .data(labels)
+                .attr("transform", "rotate(-90)")
+                .attr("y", 50)
+                .attr("x", -1 * 500)
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .style("font-size", "17px")
+                .text("MPG");
+            
+             svg.append("text")
+                .data(labels)
+                .attr("transform", "rotate(-90)")
+                .attr("y", 3)
+                .attr("x", -1 * 500)
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .style("font-size", "17px")
+                .text("Slider for Acceleration grouping");
+
+        
+            d3.select("input")
+            .on("change", function() {
+
+                let threshold = +d3.select(this).node().value;
+                console.log(threshold)
+                
+                svg.selectAll("circle")
+                    .attr("fill", (d)=> {
+                        return "rgb(0, 0, " + (d.acceleration) + ")";
+                    })
+                    .filter((d)=> {
+                        return d.acceleration <= (threshold);
+                    })
+                    .attr("fill", "red");
+                
+                svg.selectAll("svg text")
+                    .attr("fill", (d)=> {
+                        if (d.acceleration < 4000){
+                            return "rgb(0, 0, " + (d.acceleration) + ")";
+                        }
+                        else {
+                            return "Black"
+                        }
+                        
+                    })
+                    .filter((d)=> {
+                        if (d.acceleration){
+                            return d.acceleration <= (threshold);
+                        }
+                    })
+                    .attr("fill", "red");
+                
+                svg.append("g")
+                    .attr("class", "axis")
+                    .attr("transform", "translate(" + padding + ",0)")
+                    .call(yAxis);
+                
+                svg.append("g")
+                    .attr("class", "axis")
+                    .attr("transform", "translate(0," + (h - padding) + ")")
+                    .call(xAxis);
+            });
+			
+			     });
+		</script>
+          <p class = "a_text">
+            Size is correlated to weight
+        </p>
+	</body>
+</html>

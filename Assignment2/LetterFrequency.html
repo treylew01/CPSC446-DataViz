@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <title>Letter Frequencies</title>
+        <script type="text/javascript" src="d3.js"></script>
+        <style type="text/css">
+            html { 
+                font-family: "Tahoma"; 
+            }
+
+            #title {
+                    text-align: center;
+                    }
+        </style>
+        <h1 id="title">Percentage</h1>
+    </head>
+    <body>
+        <script type="text/javascript">
+
+			// set up a canvas for svg elements
+			let w = 1100;
+			let h = 600;
+            let padding = 25;
+
+			let svg = d3.select("body")
+				.append("svg")
+	       		.attr("width", w)
+	       		.attr("height",h);
+            
+            let alphabet = [];
+            let percentages = [];
+
+			d3.csv("letter_frequency.csv").then( (data)=> {
+                for (let i = 0; i <= 25; i++) {
+                    alphabet[i] = Object.values(data[i])[0];
+                    percentages[i] = parseFloat(Object.values(data[i])[2]);
+                }
+				console.log(data);
+
+                let yScale = d3.scaleLinear()
+								 .domain([0, d3.max(percentages, (d)=> { return d; }) + 1])
+								 .range([h - padding, padding]);
+                
+			    let yAxis = d3.axisLeft()
+							.scale(yScale);
+                            
+				svg.selectAll("text")
+					.data(alphabet)
+					.enter()
+					.append("text")
+					.text((d)=> {return d})
+					.attr("font-size","15px")
+					.attr("fill","black")
+					.attr("stroke","black")
+					.attr("y", h - 10)
+                    .attr("font-family", "sans-serif")
+					.attr("x",(d,i)=> {return i*(w/26)+ (padding*3)})
+
+                
+		        svg.selectAll("rect")
+					.data(percentages)
+					.enter()
+					.append("rect")
+					.attr("x", (d,i)=> {return i*(w/26)+ (padding*3)})
+					.attr("y", ((d)=> {return  yScale(d)}))
+				
+					.attr("width", 10)
+					.attr("height", ((d)=> {return  h - yScale(d) - padding}))
+					.attr("fill", "Blue");
+                
+                svg.append("g")
+				    .attr("class", "axis")
+				    .attr("transform", "translate(" + padding + ", 0)")
+				    .call(yAxis);
+			});
+
+		</script>
+    </body>
+</html>

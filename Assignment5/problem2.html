@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Problem 2</title>
+		<script type="text/javascript" src="d3.js"></script>
+		<style type="text/css">
+			html { 
+                font-family: "Tahoma"; 
+            }
+
+            #title {
+    			margin-left: 500px;
+				margin-top:30px;
+            }
+        </style>        
+		<h1 id="title">Arrange Spatial Data -- Scalars</h1>
+	</head>
+	<body>
+		<script type="text/javascript">
+			let w = 1000;
+			let h = 1000;
+
+			let svg = d3.select("body")
+				.append("svg")
+				.attr("width", w)
+				.attr("height", h)
+				.attr("style","background-color:white");
+
+			thresholds = d3.range(-3.5, 3.5).map(i => i+.05);
+			console.log(thresholds);
+			//let color = d3.scaleLinear([-3, 3],["blue",  "yellow"]);
+			color = d3.scaleSequential([-3, 3], d3.interpolatePlasma)
+
+			x = d3.scaleLinear([-3, 3], [0, w])
+			y = d3.scaleLinear([-3, 3], [h, 0])
+
+			value = (x, y) => 1.5 * (Math.sin(3 * x) + Math.cos(2 * x + 5 * y));
+
+			const q = 10; // The level of detail, e.g., sample every 4 pixels in x and y.
+			const x0 = -q / 2, x1 = w + 28 + q;
+			const y0 = -q / 2, y1 = h + q;
+			const n = Math.ceil((x1 - x0) / q);
+			const m = Math.ceil((y1 - y0) / q);
+			const grid = new Array(n * m);
+			for (let j = 0; j < m; ++j) {
+				for (let i = 0; i < n; ++i) {
+				grid[j * n + i] = value(x.invert(i * q + x0), y.invert(j * q + y0));
+				}
+			}
+			grid.x = -q;
+			grid.y = -q;
+			grid.k = q;
+			grid.n = n;
+			grid.m = m;
+
+			// Converts from grid coordinates (indexes) to screen coordinates (pixels).
+			transform = ({type, value, coordinates}) => {
+				return {type, value, coordinates: coordinates.map(rings => {
+					return rings.map(points => {
+					return points.map(([x, y]) => ([
+						grid.x + grid.k * x,
+						grid.y + grid.k * y
+					]));
+					});
+				})};
+			}
+
+			contours = d3.contours()
+				.size([grid.n, grid.m])
+				.thresholds(thresholds)
+			(grid)
+				.map(transform)
+
+			svg.append("g")
+				.attr("fill", "none")
+				.attr("stroke", "#fff")
+				.attr("stroke-opacity", 0.5)
+				.selectAll("path")
+				.data(contours)
+				.join("path")
+				.attr("fill", d => color(d.value))
+				.attr("d", d3.geoPath());
+			
+			let labels_graph = [0, 1, 2, 3, 4, 5, 6]
+
+			svg.selectAll("text.labels")
+				.data(labels_graph)
+				.enter()
+				.append("text")
+				.text((d)=> {return d})
+				.attr("font-size","15px")
+				.attr("fill","white")
+				.attr("stroke","white")
+				.attr("y", h - 10)
+				.attr("font-family", "sans-serif")
+				.attr("x",(d,i)=> {return i*(w/6.5) + 20})
+
+			let labels_graph_up = [6, 5, 4, 3, 2, 1, 0]
+			
+			svg.selectAll("text.values")
+				.data(labels_graph_up)
+				.enter()
+				.append("text")
+				.text((d)=> {return d})
+				.attr("font-size","15px")
+				.attr("fill","white")
+				.attr("stroke","white")
+				.attr("x", 20)
+				.attr("font-family", "sans-serif")
+				.attr("y",(d,i)=> {return i*(w/6.5) + 66})
+
+
+</script>
+		</script>
+	</body>
+</html>

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <title>Question 3</title>
+        <script type="text/javascript" src="d3.js"></script>
+        <style type="text/css">
+            html { 
+                font-family: "Tahoma"; 
+            }
+
+            #title {
+				margin-left: 30%;
+            }
+				
+			.boxed1 {
+				position: absolute;
+				right: 150px;
+				width: 200px;
+				height: 90px;
+				border: 5px solid black;
+				text-align: center;
+			}
+
+			.boxed2 {
+				position: absolute;
+				right: 150px;
+				width: 200px;
+				height: 90px;
+				border: 5px solid black;
+				margin-top:110px;
+				text-align: center;
+			}
+
+			.boxed3 {
+				position: absolute;
+				right: 150px;
+				width: 200px;
+				height: 90px;
+				border: 5px solid black;
+				margin-top:250px;
+				text-align: center;
+			}
+
+			.input-color {
+            	position: relative;
+       		 }
+
+        
+			.color-box {
+				width: 12px;
+				height: 12px;
+				display: inline-block;
+				position: absolute;
+				left: 1200px;
+				top: 475px;
+     		}
+
+        </style>
+        <h1 id="title">Clustered Column - Theoretical vs Empirical in Respective Discipline</h1>
+    </head>
+    <body>
+		<div class="boxed1">
+			<p1 style = "display: flex; justify-content: center; align-items: center; height: 100%; background-color:white;">
+				Click for Stacked Column
+			</p1>
+		</div>
+		<br>
+		<div class="boxed2">
+			<p2 style = "display: flex; justify-content: center; align-items: center; height: 100%; background-color:white;">
+				Click for 100% stacked Column
+			</p2>
+		</div>
+		<div class="boxed3">
+			<p3 style = "display: flex; justify-content: center; align-items: center; height: 100%; background-color:white;">
+				Click for Clustered Column
+			</p3>
+		</div>
+
+		<key1 style = " position: absolute; top: 75%; left: 77%; transform: translate(-75%, -77%);"> A </key1>
+		<keybox1 style=" width: 15px; height: 15px; position: absolute; top: 75%; left: 75%; transform: translate(-75%, -77%); background-color: orange;"></keybox1>
+		  
+		<key1 style = " position: absolute; top: 79%; left: 77%; transform: translate(-77%, -77%);"> B </key1>
+		<keybox1 style=" width: 15px; height: 15px; position: absolute; top: 79%; left: 75%; transform: translate(-77%, -77%); background-color: blue;"></keybox1>
+		 
+		<key1 style = " position: absolute; top: 83%; left: 77%; transform: translate(-79%, -77%);"> C </key1>
+		<keybox1 style=" width: 15px; height: 15px; position: absolute; top: 83%; left: 75%; transform: translate(-79%, -77%); background-color: gray;"></keybox1>
+		 
+	
+
+        <script type="text/javascript">
+
+			// set up a canvas for svg elements
+			let w = 1100;
+			let h = 600;
+            let padding = 25;
+
+			let svg = d3.select("body")
+				.append("svg")
+	       		.attr("width", w)
+	       		.attr("height",h);
+				   
+				let rect1 = d3.select("svg").append("g").attr("id","a");
+      			let rect2 = d3.select("svg").append("g").attr("id","b");
+      			let rect3 = d3.select("svg").append("g").attr("id","c");
+
+				let yax = d3.select("svg").append("g").attr("id","d");
+            
+            let data_pieces = [];
+            let datap;
+
+			d3.csv("barinput.csv").then( (data)=> {
+                for (let i = 0; i <= 14; i++) {
+					datap = {
+                        time: parseInt(Object.values(data[i])[0]),
+                        a: parseFloat(Object.values(data[i])[1]),
+                    	b: parseFloat(Object.values(data[i])[2]),
+						c: parseFloat(Object.values(data[i])[3])
+                        };
+                    data_pieces.push(datap);
+                }
+				//console.log(data);
+
+                let yScale = d3.scaleLinear()
+								 .domain([0, 9])
+								 .range([h - padding, padding]);
+                
+			    let yAxis = d3.axisLeft()
+							.scale(yScale);
+                            
+				svg.selectAll("text")
+					.data(data_pieces)
+					.enter()
+					.append("text")
+					.text((d)=> {return d.time})
+					.attr("font-size","15px")
+					.attr("fill","black")
+					.attr("stroke","black")
+					.attr("y", h - 10)
+                    .attr("font-family", "sans-serif")
+					.attr("x",(d,i)=> {return i*(w/15)+ (padding*3) + 14});
+                
+		        rect1.selectAll("rect")
+					.data(data_pieces)
+					.enter()
+					.append("rect")
+					.attr("x", (d,i)=> {return i*(w/15)+ (padding*3)})
+					.attr("y", ((d)=> {return  yScale(d.a)}))
+					.attr("width", 14)
+					.attr("height", ((d)=> {return  h - yScale(d.a) - padding}))
+					.attr("fill", "Blue");
+				
+				rect2.selectAll("rect")
+					.data(data_pieces)
+					.enter()
+					.append("rect")
+					.attr("x", (d,i)=> {return i*(w/15)+ (padding*3) + 14})
+					.attr("y", ((d)=> {return  yScale(d.b)}))
+					.attr("width", 14)
+					.attr("height", ((d)=> {return  h - yScale(d.b) - padding}))
+					.attr("fill", "Orange");
+
+				rect3.selectAll("rect")
+					.data(data_pieces)
+					.enter()
+					.append("rect")
+					.attr("x", (d,i)=> {return i*(w/15)+ (padding*3) + 28})
+					.attr("y", ((d)=> {return  yScale(d.c)}))
+					.attr("width", 14)
+					.attr("height", ((d)=> {return  h - yScale(d.c) - padding}))
+					.attr("fill", "Grey");
+                
+                yax.append("g")
+				    .attr("class", "axis")
+				    .attr("transform", "translate(" + padding + ", 0)")
+				    .call(yAxis);
+				
+				d3.select("p1")
+					.on("click", function() {
+
+						let yScale = d3.scaleLinear()
+								 .domain([0, 20])
+								 .range([h - padding, padding]);
+
+						let yAxis = d3.axisLeft()
+							.scale(yScale);
+
+					
+						rect1.selectAll("rect")
+							.data(data_pieces)
+							.transition()
+							.duration(2500)
+							.delay(1000)
+							.attr("width", (14*3))
+							.attr("x", (d,i)=> {return i*(w/15)+ (padding*3)})
+							.attr("y", ((d)=> {return  yScale(d.a)}))
+							.attr("height", ((d)=> {return  h - yScale(d.a) - padding}))
+							;
+						
+						rect2.selectAll("rect")
+							.data(data_pieces)
+							.transition()
+             				.duration(2500)
+							.delay(1000)
+							.attr("width", (14*3))
+							.attr("x", (d,i)=> {return i*(w/15)+ (padding*3)})
+							.attr("y", ((d)=> {return  yScale(d.a + d.b)}))
+							.attr("height", ((d)=> {return  h - yScale(d.b) - padding}))
+							;
+
+						rect3.selectAll("rect")
+							.data(data_pieces)
+							.transition()
+             				.duration(2500)
+							.delay(1000)
+							.attr("width", (14*3))
+							.attr("x", (d,i)=> {return i*(w/15)+ (padding*3)})
+							.attr("y", ((d)=> {return  yScale(d.a + d.b + d.c)}))
+							.attr("height", ((d)=> {return  h - yScale(d.c) - padding})) 
+							;
+						
+						yax.select("g")
+              				.transition()
+              				.duration(2500)
+            				.call(yAxis);
+
+						document.getElementById('title').innerHTML = 'Stacked Column';
+					});
+				
+				d3.select("p2")
+				.on("click", function() {
+
+					let yScale = d3.scaleLinear()
+								.domain([0, 100])
+								.range([h - padding, padding]);
+
+					let yAxis = d3.axisLeft()
+						.scale(yScale);
+
+				
+					rect1.selectAll("rect")
+						.data(data_pieces)
+						.transition()
+						.duration(2500)
+						.delay(1000)
+						.attr("width", (14*3))
+						.attr("x", (d,i)=> {return i*(w/15)+ (padding*3)})
+						.attr("y", ((d)=> {return  yScale(100 - (d.c / (d.a + d.b + d.c)  * 100) - (d.b / (d.a + d.b + d.c)  * 100))}))
+						.attr("height", ((d)=> {return  h - yScale((d.a / (d.a + d.b + d.c) * 100)) - padding}))
+						;
+					
+					rect2.selectAll("rect")
+						.data(data_pieces)
+						.transition()
+						.duration(2500)
+						.delay(1000)
+						.attr("width", (14*3))
+						.attr("x", (d,i)=> {return i*(w/15)+ (padding*3)})
+						.attr("y", ((d)=> {return  yScale(100 - (d.c / (d.a + d.b + d.c)  * 100) ) }))
+						.attr("height", ((d)=> {return  h - yScale((d.b / (d.a + d.b + d.c)  * 100)) - padding}))
+						;
+
+					rect3.selectAll("rect")
+						.data(data_pieces)
+						.transition()
+						.duration(2500)
+						.delay(1000)
+						.attr("width", (14*3))
+						.attr("x", (d,i)=> {return i*(w/15)+ (padding*3)})
+						.attr("y", ((d)=> {return  yScale(100)}))
+						.attr("height", ((d)=> {return  h - yScale((d.c / (d.a + d.b + d.c)  * 100)) - padding})) 
+						;
+					
+					yax.select("g")
+						.transition()
+						.duration(2500)
+						.call(yAxis);
+					
+					document.getElementById('title').innerHTML = '100% Stacked Column';
+				});
+				d3.select("p3")
+				.on("click", function() {
+
+					  
+					rect1.selectAll("rect")
+					.data(data_pieces)
+					.transition()
+					.duration(2500)
+					.delay(1000)
+					.attr("x", (d,i)=> {return i*(w/15)+ (padding*3)})
+					.attr("y", ((d)=> {return  yScale(d.a)}))
+					.attr("width", 14)
+					.attr("height", ((d)=> {return  h - yScale(d.a) - padding}))
+					.attr("fill", "Blue");
+				
+				rect2.selectAll("rect")
+					.data(data_pieces)
+					.transition()
+					.duration(2500)
+					.delay(1000)
+					.attr("x", (d,i)=> {return i*(w/15)+ (padding*3) + 14})
+					.attr("y", ((d)=> {return  yScale(d.b)}))
+					.attr("width", 14)
+					.attr("height", ((d)=> {return  h - yScale(d.b) - padding}))
+					.attr("fill", "Orange");
+
+				rect3.selectAll("rect")
+					.data(data_pieces)
+					.transition()
+					.duration(2500)
+					.delay(1000)
+					.attr("x", (d,i)=> {return i*(w/15)+ (padding*3) + 28})
+					.attr("y", ((d)=> {return  yScale(d.c)}))
+					.attr("width", 14)
+					.attr("height", ((d)=> {return  h - yScale(d.c) - padding}))
+					.attr("fill", "Grey");
+            
+				yax.select("g")
+					.transition()
+					.duration(2500)
+					.call(yAxis);
+					
+					document.getElementById('title').innerHTML = 'Clustered Column';
+				});
+			});
+
+		</script>
+    </body>
+</html>

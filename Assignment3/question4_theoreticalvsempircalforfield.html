@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <title>Question 4</title>
+        <script type="text/javascript" src="d3.js"></script>
+        <style type="text/css">
+            html { 
+                font-family: "Tahoma"; 
+            }
+
+            #title {
+				margin-left: 20%;
+                    }
+				
+			.boxed1 {
+				position: absolute;
+				right: 150px;
+				width: 200px;
+				height: 90px;
+				border: 5px solid black;
+				text-align: center;
+			}
+
+
+			.boxed2 {
+				position: absolute;
+				right: 150px;
+				width: 200px;
+				height: 90px;
+				border: 5px solid black;
+				margin-top:110px;
+				text-align: center;
+			}
+
+			.boxed3 {
+				position: absolute;
+				right: 150px;
+				width: 200px;
+				height: 90px;
+				border: 5px solid black;
+				margin-top:250px;
+				text-align: center;
+			}
+
+			.input-color {
+            	position: relative;
+       		 }
+        
+			.color-box {
+				width: 12px;
+				height: 12px;
+				display: inline-block;
+				position: absolute;
+				left: 1200px;
+				top: 475px;
+     		}
+
+        </style>
+        <h1 id="title">Clustered Column Theory vs Empirical Nobel Prizes</h1>
+    </head>
+    <body>
+		<div class="boxed2">
+			<p1 style = "display: flex; justify-content: center; align-items: center; height: 100%; background-color:white;">
+				Click for 100% stacked Column
+			</p1>
+		</div>
+
+		<key1 style = " position: absolute; top: 75%; left: 79%; transform: translate(-75%, -77%);"> Theory </key1>
+		<keybox1 style=" width: 15px; height: 15px; position: absolute; top: 75%; left: 75%; transform: translate(-75%, -77%); background-color: blue;"></keybox1>
+		  
+		<key1 style = " position: absolute; top: 79%; left: 85%; transform: translate(-77%, -77%);"> Theory And Empirical </key1>
+		<keybox1 style=" width: 15px; height: 15px; position: absolute; top: 79%; left: 75%; transform: translate(-77%, -77%); background-color: red;"></keybox1>
+		
+        <script type="text/javascript">
+
+			// set up a canvas for svg elements
+			let w = 1100;
+			let h = 600;
+            let padding = 25;
+
+			let svg = d3.select("body")
+				.append("svg")
+	       		.attr("width", w)
+	       		.attr("height",h);
+				   
+				let rect1 = d3.select("svg").append("g").attr("id","a");
+      			let rect2 = d3.select("svg").append("g").attr("id","b");
+      			let rect3 = d3.select("svg").append("g").attr("id","c");
+
+				let rect1e = d3.select("svg").append("g").attr("id","a");
+      			let rect2e = d3.select("svg").append("g").attr("id","b");
+      			let rect3e = d3.select("svg").append("g").attr("id","c");
+
+				let yax = d3.select("svg").append("g").attr("id","d");
+            
+			let scientists = [];
+           
+		   	let scientist;
+			
+			let medicine_emp = 0;
+			let medicine_theory = 0;
+
+			let chemistry_emp = 0;
+			let chemistry_theory = 0;
+
+			let physics_emp = 0;
+			let physics_theory = 0;
+
+		   	d3.csv("Jones_Weinberg_2011_PNAS.csv").then( (data)=> {
+			   	for (let i = 0; i <= 524; i++) {
+				   	scientist = {
+					   name:  Object.values(data[i])[0],
+					   field: Object.values(data[i])[1],
+					   birthyear: parseInt(Object.values(data[i])[2]),
+					   prizeyear: parseInt(Object.values(data[i])[3]),
+					   midyear: parseInt(Object.values(data[i])[4]),
+					   deathyear: parseInt(Object.values(data[i])[5]),
+					   tore:  parseInt(Object.values(data[i])[6]),
+					   degage: parseInt(Object.values(data[i])[7]),
+					   };
+				   scientists.push(scientist);
+	   
+				 
+				   	if ((Object.values(data[i])[1]) == "Medicine"){
+						if ((parseInt(Object.values(data[i])[6])) == 1){
+						 	medicine_emp++;
+					   	}
+						else{
+							medicine_theory++;
+						}
+					   }
+					
+					if ((Object.values(data[i])[1]) == "Physics"){
+						if ((parseInt(Object.values(data[i])[6])) == 1){
+						 	physics_emp++;
+					   	}
+						else{
+							physics_theory++;
+						}
+					   }
+					
+					if ((Object.values(data[i])[1]) == "Chemistry"){
+						if ((parseInt(Object.values(data[i])[6])) == 1){
+						 	chemistry_emp++;
+					   	}
+						else{
+							chemistry_theory++;
+						}
+					   }
+					 
+			   }
+			   console.log(data);
+			   console.log(chemistry_emp);
+			   console.log(physics_emp);
+
+
+                let yScale = d3.scaleLinear()
+								 .domain([0, 180])
+								 .range([h - padding, padding]);
+                
+			    let yAxis = d3.axisLeft()
+							.scale(yScale);
+                            
+		        rect1.selectAll("rect")
+					.data(scientists)
+					.enter()
+					.append("rect")
+					.attr("x", 100)
+					.attr("y", ((d)=> {return  yScale(medicine_theory)}))
+					.attr("width", 50)
+					.attr("height", ((d)=> {return  h - yScale(medicine_theory) - padding}))
+					.attr("fill", "Blue");
+				
+				rect1e.selectAll("rect")
+					.data(scientists)
+					.enter()
+					.append("rect")
+					.attr("x", 150)
+					.attr("y", ((d)=> {return  yScale(medicine_emp)}))
+					.attr("width", 50)
+					.attr("height", ((d)=> {return  h - yScale(medicine_emp) - padding}))
+					.attr("fill", "Red");
+
+				svg.append("text")
+					.text("Medicine")
+					.attr("font-size","15px")
+					.attr("fill","black")
+					.attr("stroke","black")
+					.attr("y", h - 10)
+                    .attr("font-family", "sans-serif")
+					.attr("x", 125);
+				
+				rect2.selectAll("rect")
+					.data(scientists)
+					.enter()
+					.append("rect")
+					.attr("x", 400)
+					.attr("y", ((d)=> {return  yScale(chemistry_theory)}))
+					.attr("width", 50)
+					.attr("height", ((d)=> {return  h - yScale(chemistry_theory) - padding}))
+					.attr("fill", "Blue");
+				
+				rect2e.selectAll("rect")
+					.data(scientists)
+					.enter()
+					.append("rect")
+					.attr("x", 450)
+					.attr("y", ((d)=> {return  yScale(chemistry_emp)}))
+					.attr("width", 50)
+					.attr("height", ((d)=> {return  h - yScale(chemistry_emp) - padding}))
+					.attr("fill", "Red");
+			   
+				svg.append("text")
+					.text("Chemistry")
+					.attr("font-size","15px")
+					.attr("fill","black")
+					.attr("stroke","black")
+					.attr("y", h - 10)
+                    .attr("font-family", "sans-serif")
+					.attr("x", 425);
+
+				rect3.selectAll("rect")
+					.data(scientists)
+					.enter()
+					.append("rect")
+					.attr("x", 700)
+					.attr("y", ((d)=> {return  yScale(physics_theory)}))
+					.attr("width", 50)
+					.attr("height", ((d)=> {return  h - yScale(physics_theory) - padding}))
+					.attr("fill", "Blue");
+				
+				rect3e.selectAll("rect")
+					.data(scientists)
+					.enter()
+					.append("rect")
+					.attr("x", 750)
+					.attr("y", ((d)=> {return  yScale(physics_emp)}))
+					.attr("width", 50)
+					.attr("height", ((d)=> {return  h - yScale(physics_emp) - padding}))
+					.attr("fill", "Red");
+				
+				svg.append("text")
+					.text("Physics")
+					.attr("font-size","15px")
+					.attr("fill","black")
+					.attr("stroke","black")
+					.attr("y", h - 10)
+                    .attr("font-family", "sans-serif")
+					.attr("x", 725);
+                
+                yax.append("g")
+				    .attr("class", "axis")
+				    .attr("transform", "translate(" + padding + ", 0)")
+				    .call(yAxis);
+			
+				d3.select("p1")
+				.on("click", function() {
+
+					let yScale = d3.scaleLinear()
+								.domain([0, 100])
+								.range([h - padding, padding]);
+
+					let yAxis = d3.axisLeft()
+						.scale(yScale);
+
+
+					rect1.selectAll("rect")
+						.transition()
+						.duration(2500)
+						.delay(1000)
+						.attr("x", 100)
+						.attr("y", ((d)=> {return  yScale((medicine_theory / (medicine_theory + medicine_emp) * 100))}))
+						.attr("width", 100)
+						.attr("height", ((d)=> {return  h - yScale (medicine_theory / (medicine_theory + medicine_emp) * 100) - padding}))
+						.attr("fill", "Blue");
+				
+					rect1e.selectAll("rect")
+						.transition()
+						.duration(2500)
+						.delay(1000)
+						.attr("x", 100)
+						.attr("y", ((d)=> {return  yScale (107 - (medicine_emp/ (medicine_theory + medicine_emp) * 100))}))
+						.attr("width", 100)
+						.attr("height", ((d)=> {return  h - yScale(medicine_emp / (medicine_theory + medicine_emp) * 100) - padding}))
+						.attr("fill", "Red");
+
+					rect2.selectAll("rect")
+						.transition()
+						.duration(2500)
+						.delay(1000)
+						.attr("x", 400)
+						.attr("y", ((d)=> {return  yScale((physics_theory / (physics_theory + physics_emp) * 100))}))
+						.attr("width", 100)
+						.attr("height", ((d)=> {return  h - yScale (physics_theory / (physics_theory + physics_emp) * 100) - padding}))
+						.attr("fill", "Blue");
+				
+					rect2e.selectAll("rect")
+						.transition()
+						.duration(2500)
+						.delay(1000)
+						.attr("x", 400)
+						.attr("y", ((d)=> {return  yScale (129.5 - (physics_emp/ (physics_theory + physics_emp) * 100))}))
+						.attr("width", 100)
+						.attr("height", ((d)=> {return  h - yScale(physics_emp / (physics_theory + physics_emp) * 100) - padding}))
+						.attr("fill", "Red");
+
+					rect3.selectAll("rect")
+						.transition()
+						.duration(2500)
+						.delay(1000)
+						.attr("x", 700)
+						.attr("y", ((d)=> {return  yScale((chemistry_theory / (chemistry_theory + chemistry_emp) * 100))}))
+						.attr("width", 100)
+						.attr("height", ((d)=> {return  h - yScale (chemistry_theory / (chemistry_theory + chemistry_emp) * 100) - padding}))
+						.attr("fill", "Blue");
+				
+					rect3e.selectAll("rect")
+						.transition()
+						.duration(2500)
+						.delay(1000)
+						.attr("x",700)
+						.attr("y", ((d)=> {return  yScale (119 - (chemistry_emp/ (chemistry_theory + chemistry_emp) * 100))}))
+						.attr("width", 100)
+						.attr("height", ((d)=> {return  h - yScale(chemistry_emp / (chemistry_theory + chemistry_emp) * 100) - padding}))
+						.attr("fill", "Red");
+
+					yax.select("g")
+						.transition()
+						.duration(2500)
+						.call(yAxis);
+					
+					document.getElementById('title').innerHTML = '100% Stacked Column';
+				});
+			});
+
+		</script>
+    </body>
+</html>

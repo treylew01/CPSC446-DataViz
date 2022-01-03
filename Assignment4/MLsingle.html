@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>ML Single HTML</title>
+		<script type="text/javascript" src="d3.js"></script>
+		<style type="text/css">
+
+			.line {
+				fill: none;
+				stroke: teal;
+				stroke-width: 1;
+			}	
+
+			#title {
+				float: center;
+    			margin-left: 300px;
+                top: 10px; 
+                    }
+
+			.a_text{
+				float: center;
+    			margin-left: 250px;
+                top: 10px; 
+			}
+
+		</style>
+		<h1 id="title">Mauna Loa C02 Monthly Averages</h1>
+	</head>
+	<body>
+		<p class = "a_text">
+			Numbers on inside are years, 
+			Numbers on outside indicate radial scale used for averages
+        </p>
+		<script type="text/javascript">
+
+			//Width and height
+			let w = 1000;
+			let h = 500;
+			let padding = 20;
+			
+			let dataset, xScale, yScale, xAxis, yAxis, line, dangerLine;  //Empty, for now
+
+			//For converting Dates to strings
+			let formatTime = d3.timeFormat("%Y");
+
+			//Function for converting CSV values from strings to Dates and numbers
+			let rowConverter = (d)=> {
+				return {
+					date: new Date(+d.year, (+d.month - 1)),  //Make a new Date object for each year + month
+					average: parseFloat(d.average)  //Convert from string to float
+				};
+			}
+
+			d3.csv("mauna_loa_co2_monthly_averages.csv", rowConverter).then((data)=>  {
+				let dataset = data;
+				
+				line = d3.line()
+							.defined((d)=> { return d.average >= 0 })
+							.x((d)=> { return circleScale(d.average) * Math.cos(radialScale(d.date)) + (w/2 + padding); })
+							.y((d)=> { return circleScale(d.average) * Math.sin(radialScale(d.date)) + (h/2 + padding); });
+				
+				radialScale = d3.scaleTime()
+					.domain([
+							d3.min(dataset, function(d) { return d.date }),
+							d3.max(dataset, function(d) { return d.date; })
+							])
+					.range([0, Math.PI * 2]);
+				
+				circleScale = d3.scaleLinear()
+					.domain([0, d3.max(dataset, function(d) { return d.average; })])
+					.range([0, h/2]);
+
+				//Create SVG element
+				let svg = d3.select("body")
+							.append("svg")
+							.attr("width", w)
+							.attr("height", h);
+
+				//Create lines
+				svg.append("path")
+					.datum(dataset)
+					.attr("class", "line")
+					.attr("d", line);
+				
+				
+				svg.selectAll("line")
+					.data(dataset)
+					.enter()
+					.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'black')
+					.attr("x1", function(d, i) { 
+						if (i % 12 == 0) {
+							if (d.date.getYear() != 64){
+								return circleScale(d.average - 50) * Math.cos(radialScale(d.date)) + (w/2 + padding);
+							}
+					}})
+					.attr("x2", function(d, i) {
+					if (i % 12 == 0) {
+						if (d.date.getYear() != 64){
+							return circleScale(d.average) * Math.cos(radialScale(d.date)) + (w/2 + padding);
+						}
+					}})
+					.attr("y1", function(d, i) { 
+						if (i % 12 == 0) {
+							if (d.date.getYear() != 64){
+								return circleScale(d.average - 50) * Math.sin(radialScale(d.date)) + (h/2 + padding);
+							}
+					}})
+					.attr("y2", function(d, i) {
+					if (i % 12 == 0) {
+						if (d.date.getYear() != 64){
+							return circleScale(d.average) * Math.sin(radialScale(d.date)) + (h/2 + padding);
+						}
+					}});
+				
+				textScale = d3.scaleLinear()
+					.domain([0, d3.max(dataset, function(d) { return d.average; })])
+					.range([0, h/2 + 28]);
+				
+				svg.selectAll("text.values")
+					.data(dataset)
+					.enter()
+					.append("text")
+					.attr("class", "text")
+					.attr("text-anchor", "middle")
+					.attr("font-size","7px")
+					.attr("fill","black")
+                    .attr("font-family", "sans-serif")
+					.attr("x", function(d, i) {
+					if (i % 12 == 0) {
+						return textScale(d.average) * Math.cos(radialScale(d.date)) + (w/2 + padding) ;
+					}})
+					.attr("y", function(d, i) {
+					if (i % 12 == 0) {
+						if (d.date.getYear() != 64){
+							return textScale(d.average) * Math.sin(radialScale(d.date)) + (h/2 + padding) ;
+						}
+					}})
+					.text(function(d, i) { return d.average; });
+
+				textScale = d3.scaleLinear()
+					.domain([0, d3.max(dataset, function(d) { return d.average; })])
+					.range([0, h/2 - 50]);
+
+				svg.selectAll("text.labels")
+					.data(dataset)
+					.enter()
+					.append("text")
+					.attr("class", "text")
+					.attr("text-anchor", "middle")
+					.attr("font-size","7px")
+					.attr("fill","black")
+                    .attr("font-family", "sans-serif")
+					.attr("x", function(d, i) {
+					if (i % 12 == 0) {
+						return textScale(d.average) * Math.cos(radialScale(d.date)) + (w/2 + padding) ;
+					}})
+					.attr("y", function(d, i) {
+					if (i % 12 == 0) {
+						if (d.date.getYear() != 64){
+							return textScale(d.average) * Math.sin(radialScale(d.date)) + (h/2 + padding) ;
+						}
+					}})
+					.text(function(d, i) { return d.date.getYear() + 1900; });
+				
+				svg.append("circle")
+					.attr("id", "gray")
+					.attr("fill", "teal" )
+					.attr("r", 15)
+					.attr("cx", w/2)
+					.attr("cy", h/2);
+				
+			});
+		</script>
+	</body>
+</html>

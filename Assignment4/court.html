@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3: Force layout</title>
+		<script type="text/javascript" src="d3.js"></script>
+		<style type="text/css">
+		#title {
+				margin-left: 18%;
+                    }
+		</style>
+		<h1 id="title">Supreme Court Nodes: Yes</h1>
+	</head>
+	<body>
+		<script type="text/javascript">
+
+			//Width and height
+			let w = 1000;
+			let h = 1000;
+
+			let justices = ["Breyer", "Ginsburg", "Souter", "Stevens", "OConner", "Kennedy" , "Rehnquest", "Thomas","Scalia"];
+
+			d3.json("SupremeCourt_net.json", d3.autotype).then( (dataset)=> {
+				
+	
+			console.log(dataset)			
+    	
+			//let dataset = {nodes,edges}
+
+			//Initialize a simple force layout, using the nodes and edges in dataset
+			let force = d3.forceSimulation(dataset.nodes)
+						  .force("charge", d3.forceManyBody())
+						  .force("link", d3.forceLink(dataset.edges).distance(400).strength(.001))
+						  .force("center", d3.forceCenter().x(w/2).y(h/2))
+						
+
+			let colors = d3.scaleOrdinal(d3.schemeCategory10);
+
+			//Create SVG element
+			let svg = d3.select("body")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+			
+			//Create edges as lines
+			let the_edges = svg.selectAll("line")
+				.data(dataset.edges)
+				.enter()
+				.append("line")
+				.style("stroke", "#ccc")
+				.style("stroke-width", 1)
+			
+			//Create nodes as circles
+			let the_nodes = svg.selectAll("circle")
+				.data(dataset.nodes)
+				.enter()
+				.append("circle")
+				.attr("r", 12)
+				.on("mouseover",function (event,d) {
+					svg.append("text")
+					.attr("id", "tooltip")
+					.attr("x", d.x)
+					.attr("y", d.y - 15)
+					.attr("text-anchor", "middle")
+					.attr("font-size", "14px")
+					.attr("fill", "black")
+					.text(d["name"]);
+				})
+				.on("mouseout", function() {
+					d3.select("#tooltip").remove()
+				})
+				.style("fill", (d,i )=> {
+					if (d["name"] == "Breyer" || d["name"] == "Ginsburg" || d["name"] == "Souter" || d["name"] == "Stevens"
+					|| d["name"] == "OConner" || d["name"] == "Kennedy" || d["name"] == "Rehnquest" || d["name"] == "Thomas" 
+					|| d["name"] == "Scalia"){
+						return "Black"
+					}
+					else {
+						return "#3CB371"
+					}
+				})
+				.call(d3.drag()  //Define what to do on drag events
+					.on("start", dragStarted)
+					.on("drag", dragging)
+					.on("end", dragEnded));
+
+			//Add a simple tooltip
+			the_nodes.append("title")
+				 .text((d)=> {
+					return d.name;
+				 });
+			
+			//Every time the simulation "ticks", this will be called
+			force.on("tick", function() {
+
+				the_edges.attr("x1", (d)=> { return d.source.x; })
+					 .attr("y1", (d)=> { return d.source.y; })
+					 .attr("x2", (d)=> { return d.target.x; })
+					 .attr("y2", (d)=> { return d.target.y; });
+			
+				the_nodes.attr("cx", (d)=> { return d.x; })
+					 .attr("cy", (d)=> { return d.y; });
+	
+			});
+
+
+
+			//Define drag event functions
+			// event and subject references updated for v7
+			function dragStarted(d) {
+			//	console.log(event);
+			//	console.log(event.x, event.y);
+			//	console.log(d);
+		        //	console.log("started");
+			if (!event.active) force.alphaTarget(0.3).restart();
+				d.subject.fx = d.x;
+				d.subject.fy = d.y;
+			}
+
+			function dragging(d) {
+			//	console.log("dragging");
+				d.subject.fx = event.x;
+				d.subject.fy = event.y;
+			}
+
+			function dragEnded(d) {
+				if (!event.active) force.alphaTarget(0);
+				d.subject.fx = null;
+				d.subject.fy = null;
+			}
+
+			function resize() {
+				width = window.innerWidth, height = window.innerHeight;
+				svg.attr("width", width).attr("height", height);
+				force.size([width, height]).resume();
+  			}				
+		})
+
+		</script>
+	</body>
+</html>

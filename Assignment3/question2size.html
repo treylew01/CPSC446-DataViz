@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Question 2 Size</title>
+		<script type="text/javascript" src="d3.js"></script>
+		<style type="text/css">
+			html { 
+                font-family: "Tahoma"; 
+            }
+
+            #title {
+				float: left;
+    			margin-left: 300px;
+                    }
+        </style>
+        <h1 id="title">Testp2 Data based on size</h1>
+		</style>
+	</head>
+	<body>
+		<script type="text/javascript">
+
+			//Width and height
+			let w = 1100;
+			let h = 1100;
+            let padding = 40;
+		
+			let Circles = [];
+           
+			let x_max = 0;
+			let y_max = 0;
+
+            let circle;
+			
+            //Create SVG element
+			let svg = d3.select("body")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+
+			d3.csv("testp2.csv").then( (data)=> {
+                for (let i = 0; i <= 9999; i++) {
+                    circle = {
+                        x: parseFloat(Object.values(data[i])[0]),
+                        y: parseFloat(Object.values(data[i])[1]),
+                        p: parseFloat(Object.values(data[i])[2])
+                        };
+                    Circles.push(circle);
+        
+					if ((parseFloat(Object.values(data[i])[0])) >= x_max){
+							x_max = (parseFloat(Object.values(data[i])[0]))
+						}
+					if ((parseFloat(Object.values(data[i])[1])) >= y_max){
+							y_max = (parseInt(Object.values(data[i])[1]))
+						}
+                }
+				console.log(data);
+            
+            let xScale = d3.scaleLinear()
+								 .domain([0, x_max + 10])
+								 .range([padding, w - padding]);
+
+			let yScale = d3.scaleLinear()
+								 .domain([0, y_max + 10])
+								 .range([h - padding , padding]);
+
+            var xAxis = d3.axisBottom()
+              .scale(xScale)
+              .ticks(20);
+
+            var yAxis = d3.axisLeft()
+              .scale(yScale)
+              .ticks(20);
+			
+			svg.selectAll("circle")
+			   .data(Circles)
+			   .enter()
+			   .append("circle")
+			   .attr("cx", (d)=> {
+			   		return xScale(d.x);
+			   })
+			   .attr("cy", (d)=> {
+			   		return yScale(d.y);
+			   })
+			   .attr("r", (d)=> {
+			   		return (d.p);
+				})
+				.on("mouseover",function (event,d) {
+
+				//Get this bar's x/y values, then augment for the tooltip
+				let xPosition = xScale(d.x);
+				let yPosition = yScale(d.y);
+
+				//Create the tooltip label
+				svg.append("text")
+					.attr("id", "tooltip")
+					.attr("x", xPosition)
+					.attr("y", yPosition)
+					.attr("text-anchor", "middle")
+					.attr("font-family", "sans-serif")
+					.attr("font-size", "11px")
+					.attr("font-weight", "bold")
+					.attr("fill", "black")
+					.text((d.x + ", " + d.y + ", " + d.p));
+				})
+				.on("mouseout", function() {
+
+				//Remove the tooltip
+				d3.select("#tooltip").remove();
+
+				})
+			   .attr("fill", "black");	
+			   
+            })
+		</script>
+	</body>
+</html>

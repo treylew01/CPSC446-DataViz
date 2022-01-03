@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3: A simple scatterplot with SVG</title>
+		<script type="text/javascript" src="d3.js"></script>
+		<style type="text/css">
+			html { 
+                font-family: "Tahoma"; 
+            }
+
+            #title {
+				float: left;
+    			margin-left: 400px;
+                    }
+        </style>
+        <h1 id="title">MLB Payroll vs Wins</h1>
+		</style>
+	</head>
+	<body>
+		<script type="text/javascript">
+
+			//Width and height
+			let w = 1100;
+			let h = 700;
+            let padding = 40;
+		
+			let NLeagueTeams = [];
+            let ALeagueTeams = [];
+           
+			let payroll_max = 0;
+			let win_max = 0;
+
+            let team;
+			
+            //Create SVG element
+			let svg = d3.select("body")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+
+			d3.csv("mlb.csv").then( (data)=> {
+                for (let i = 0; i <= 29; i++) {
+                    if ((Object.values(data[i])[1]) === "A"){
+                        team = {
+                            Name: Object.values(data[i])[0],
+                            Payroll: parseFloat(Object.values(data[i])[2]),
+                            Wins: parseInt(Object.values(data[i])[3])
+                        };
+                        ALeagueTeams.push(team);
+                    }
+                    else{
+                        team = {
+                            Name: Object.values(data[i])[0],
+                            Payroll: parseFloat(Object.values(data[i])[2]),
+                            Wins: parseInt(Object.values(data[i])[3])
+                        };
+                        NLeagueTeams.push(team);
+                    }
+					if ((parseFloat(Object.values(data[i])[2])) >= payroll_max){
+							payroll_max = (parseFloat(Object.values(data[i])[2]))
+						}
+					if ((parseInt(Object.values(data[i])[3])) >= win_max){
+							win_max = (parseInt(Object.values(data[i])[3]))
+						}
+                }
+				console.log(data);
+            
+            let xScale = d3.scaleLinear()
+								 .domain([45, payroll_max + 10])
+								 .range([padding, w - padding * 2]);
+
+			let yScale = d3.scaleLinear()
+								 .domain([45, win_max + 10])
+								 .range([h - padding , padding]);
+
+            var xAxis = d3.axisBottom()
+              .scale(xScale)
+              .ticks(20);
+
+            var yAxis = d3.axisLeft()
+              .scale(yScale)
+              .ticks(20);
+			
+			svg.selectAll("circle")
+			   .data(ALeagueTeams)
+			   .enter()
+			   .append("circle")
+			   .attr("cx", (d)=> {
+			   		return xScale(d.Payroll);
+			   })
+			   .attr("cy", (d)=> {
+			   		return yScale(d.Wins);
+			   })
+			   .attr("r", 5)
+			   .attr("fill", "red");
+    
+
+            svg.selectAll("body")
+			   .data(NLeagueTeams)
+			   .enter()
+			   .append("circle")
+			   .attr("cx", (d)=> {
+			   		return xScale(d.Payroll);
+			   })
+			   .attr("cy", (d)=> {
+			   		return yScale(d.Wins);
+			   })
+			   .attr("r", 5)
+			   .attr("fill", "blue");
+			
+			svg.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(" + padding + ",0)")
+				.call(yAxis);
+			
+			svg.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(0," + (h - padding) + ")")
+				.call(xAxis);
+			
+			svg.append("text")
+            	.attr("x", 450)
+            	.attr("y", h - 5)
+            	.style("textalign", "center")
+            	.style("font-size", "12px")
+           		.text("Payroll (Millions $)");
+
+			svg.append("text")
+            	.attr("x", -h/2)
+            	.attr("y", 10)
+				.attr("transform", "rotate(-90)")
+            	.style("textalign", "center")
+            	.style("font-size", "12px")
+           		.text("Wins (Game #s)");
+
+			svg.append("rect")
+			   	.attr("x", w - 100)
+            	.attr("y", h - 160)
+				.attr("width", 100)
+				.attr("height", 100)
+				.attr("fill", "Grey");
+			
+			svg.append("text")
+            	.attr("x", w - 90)
+            	.attr("y", h - 70)
+            	.style("textalign", "center")
+            	.style("font-size", "20px")
+				.attr("fill", "blue")
+           		.text("National");
+			
+			svg.append("text")
+            	.attr("x", w - 90)
+            	.attr("y", h - 110)
+            	.style("textalign", "center")
+            	.style("font-size", "20px")
+				.attr("fill", "red")
+           		.text("American");
+			
+			svg.append("text")
+            	.attr("x", w - 98)
+            	.attr("y", h - 140)
+            	.style("textalign", "center")
+            	.style("font-size", "10px")
+				.attr("fill", "white")
+           		.text("Key - Baseball League");
+			
+			   
+            })
+		</script>
+	</body>
+</html>

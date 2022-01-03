@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Flow</title>
+		<script type="text/javascript" src="d3.js"></script>
+		<style type="text/css">
+			html { 
+                font-family: "Tahoma"; 
+            }
+
+            #title {
+    			margin-left: 500px;
+				margin-top:30px;
+            }
+        </style>        
+		<h1 id="title">Flow</h1>
+	</head>
+	<body>
+		<script type="text/javascript">
+			//Width and height
+			let w = 1000;
+			let h = 1000;
+            let padding = 40;
+						
+			let arrow;
+			let arrows = [];
+
+			d3.csv("vectors.csv").then( (data)=> {
+                for (let i = 0; i <= 440; i++) {
+                    arrow = {
+                        x: parseFloat(Object.values(data[i])[0]),
+                        y: parseFloat(Object.values(data[i])[1]),
+                        ypos: parseFloat(Object.values(data[i])[2]),
+						xpos: parseFloat(Object.values(data[i])[3])
+                        };
+                    arrows.push(arrow);
+        
+                }
+				console.log(arrows);
+				
+			let svg = d3.select("body")
+				.append("svg")
+				.attr("width", w)
+				.attr("height", h)
+				.attr("y", 100);
+			
+			for (let i = 46; i <= h; i += 45.5) {
+				svg.append("line")
+					.style('stroke', 'black')
+					.attr("x1", padding)
+					.attr("y1", i)
+					.attr("x2", w - padding )
+					.attr("y2", i)
+					.attr("class", "line")
+					.attr("stroke-width", .15)
+			};
+
+			for (let i = 46; i <= w; i += 45.5) {
+				svg.append("line")
+					.style('stroke', 'black')
+					.attr("x1", i)
+					.attr("y1", padding)
+					.attr("x2", i )
+					.attr("y2", h - padding)
+					.attr("class", "line")
+					.attr("stroke-width", .15)
+			};
+
+			svg.selectAll('polygon')
+				.data(arrows)
+				.enter()
+				.append("polygon")
+				.attr("points", "-5,1 0,1 0,4 5,0 0,-4 0,-1 -5,-1")
+				.attr("fill", "blue")
+				.attr("stroke", "grey")
+				.attr("transform", (d) => 
+						{
+						if (d.x == 0) rotation = 0;
+								else {
+									rotation = -180*Math.atan2(d.y,d.x)/3.14159;
+								}
+						return "translate(" + d.xpos + " " + d.ypos + ") rotate(" + rotation + ") scale(" + Math.hypot(d.x,d.y)/5 + " 1)"
+						});
+				})
+		</script>
+	</body>
+</html>

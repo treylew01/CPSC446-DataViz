@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Women's table</title>
+		<script type="text/javascript" src="d3.js"></script>
+		<style type="text/css">
+
+		#title {
+				margin-left: 35%;
+                    }
+
+			.line {
+				fill: none;
+				stroke: black;
+				stroke-width: 0.5;
+				opacity: .25;
+			}	
+
+		</style>
+		<h1 id="title">Women's Table</h1>
+	</head>
+	<body>
+		<script type="text/javascript">
+
+			//Width and height
+			let w = 2000;
+			let h = 1000;
+			let padding = 20;
+			
+
+			//For converting Dates to strings
+			let formatTime = d3.timeFormat("%Y");
+
+			let radius2 = 500;
+
+			let radius = 400;
+			let sides = 128;
+			let coils = 3;
+			let rotation = 0;
+
+			let awayStep = radius/sides; 
+			let awayStep2 = radius2/sides;
+
+			let aroundStep = coils/sides;
+	
+			let aroundRadians = aroundStep * 2 * Math.PI;
+			rotation *= 2 * Math.PI;
+
+			let swirls = [];
+			let swirl;
+
+			//Function for converting CSV values from strings to Dates and numbers
+			let rowConverter = (d)=> {
+				return {
+					date: parseInt(d.year),  //Make a new Date object for each year + month
+					enrollment: parseFloat(d.enrollment)  //Convert from string to float
+				};
+			}
+
+			d3.csv("womens_enrollment.csv", rowConverter).then((data)=>  {
+				let dataset = data;
+
+				for(let i = 1; i <= sides; i++){
+					let step = i * awayStep;
+					let step2 = i *awayStep2;
+
+					let turn = i * aroundRadians + rotation;
+					swirl = {
+						year: parseInt(Object.values(data[i])[0]),
+						enrollment: parseInt(Object.values(data[i])[1]),
+						x: 500 + Math.cos(turn) * step,
+						y: 500 + Math.sin(turn) * step,
+						x2: 500 + Math.cos(turn) * step2,
+						y2: 500 + Math.sin(turn) * step2
+					};
+					swirls.push(swirl);
+				}
+				console.log(swirls)
+
+				let svg = d3.select("body")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+						
+				
+				line = d3.line()
+							.x((d)=> { return d.x * 1.5 })
+							.y((d)=> { return d.y });
+		
+				svg.append("path")
+					.data(swirls)
+					.attr("class", "line")
+					.attr("d",  line(swirls));
+				
+				svg.selectAll("text.values")
+					.data(swirls)
+					.enter()
+					.append("text")
+					.attr("class", "text")
+					.attr("text-anchor", "middle")
+					.attr("font-size","10px")
+					.attr("fill","black")
+                    .attr("font-family", "sans-serif")
+					.attr("x", function(d) {
+						return d.x * 1.5 ;
+					})
+					.attr("y", function(d) {
+						return d.y;
+					})
+					.text(function(d) {
+						return d.enrollment;
+					});
+				
+				svg.selectAll("text.labels")
+					.data(swirls)
+					.enter()
+					.append("text")
+					.attr("class", "text")
+					.attr("text-anchor", "middle")
+					.attr("font-size","20px")
+					.attr("fill","black")
+                    .attr("font-family", "sans-serif")
+					.attr("x", function(d) {
+						return d.x2 * 1.5 ;
+					})
+					.attr("y", function(d) {
+						return d.y2;
+					})
+					.text(function(d) {
+						if (d.year % 10 == 0 && (d.year != 1880 && d.year != 1890)){
+							return d.year;
+						}
+						
+					});
+				
+				svg.append("text")
+					.attr("class", "text")
+					.attr("text-anchor", "middle")
+					.attr("font-size","20px")
+					.attr("fill","black")
+					.attr("font-family", "sans-serif")
+					.attr("x", 800)
+					.attr("y", 525)
+					.text("1880");
+				
+				svg.append("text")
+					.attr("class", "text")
+					.attr("text-anchor", "middle")
+					.attr("font-size","20px")
+					.attr("fill","black")
+					.attr("font-family", "sans-serif")
+					.attr("x", 630)
+					.attr("y", 540)
+					.text("1890");	
+			});
+			
+		</script>
+	</body>
+</html>

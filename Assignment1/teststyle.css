@@ -1,0 +1,45 @@
+html, body {
+  height: 100%;
+}
+
+html {
+  display: table;
+  margin: auto;
+}
+
+body {
+  display: table-cell;
+  vertical-align: middle;
+  background-color: #8A451B;
+}
+
+h1 {
+  color: #FED530;
+  font-family: Comic Sans MS;
+  font-size: 50px;
+}
+
+div {
+  background-color: #FFEFD6;
+  width: 630px
+}
+
+p {
+  background-color: #F4DDB5;
+  width: 630px;
+  color: #A52F31;
+  font-size: 30px;
+  font-family: Arial;
+}
+
+li {
+  background-color: #FFEFD6;
+  width: 630px;
+  color: #CB8546;
+  font-size: 20px;
+  font-family: Arial;
+}
+
+.highlight {
+  color: #FC6951;
+}

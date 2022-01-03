@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>ML year HTML</title>
+		<script type="text/javascript" src="d3.js"></script>
+		<style type="text/css">
+
+			.line {
+				fill: none;
+				stroke: teal;
+				stroke-width: 0.5;
+			}	
+
+			#title {
+				float: center;
+    			margin-left: 300px;
+                top: 10px; 
+                    }
+
+			.a_text{
+				float: center;
+    			margin-left: 250px;
+                top: 10px; 
+			}
+
+		</style>
+		<h1 id="title">Mauna Loa C02 Yearly Averages</h1>
+	</head>
+	<body>
+		<p class = "a_text">
+			Numbers on inside are Months, 
+			Numbers on radial scale used for averages, Each "Circle" Correlates to the average in one year
+        </p>
+		<script type="text/javascript">
+
+			//Width and height
+			let w = 1000;
+			let h = 500;
+			let padding = 10;
+			
+			let dataset, xScale, yScale, xAxis, yAxis, line, dangerLine;  //Empty, for now
+
+			//For converting Dates to strings
+			let formatTime = d3.timeFormat("%Y");
+
+			//Function for converting CSV values from strings to Dates and numbers
+			let rowConverter = (d)=> {
+				return {
+					date: new Date(+d.year, (+d.month - 1)),  //Make a new Date object for each year + month
+					average: parseFloat(d.average)  //Convert from string to float
+				};
+			}
+
+			d3.csv("mauna_loa_co2_monthly_averages.csv", rowConverter).then((data)=>  {
+				let dataset = data;
+				
+				line = d3.line()
+							.defined((d)=> { return d.average >= 0 })
+							.x((d, i)=> { return circleScale(d.average) * Math.cos((i + 2) * (Math.PI * 2)/12)  + (w/2); })
+							.y((d, i)=> { return circleScale(d.average) * Math.sin((i + 2) * (Math.PI * 2)/12)  + (h/2); });
+				
+				radialScale = d3.scaleTime()
+					.domain([
+							d3.min(dataset, function(d) { return d.date }),
+							d3.max(dataset, function(d) { return d.date; })
+							])
+					.range([0, Math.PI * 2]);
+				
+				circleScale = d3.scaleLinear()
+					.domain([300, d3.max(dataset, function(d) { return d.average; })])
+					.range([100, h/2]);
+
+				//Create SVG element
+				let svg = d3.select("body")
+							.append("svg")
+							.attr("width", w)
+							.attr("height", h)
+							.on('click', (event) => {
+					var coords = d3.pointer( event );
+					console.log( coords[0], coords[1] ) // log the mouse x,y position
+				});
+
+				svg.append("text")
+					.attr("x", 499)
+					.attr("y", 180)
+					.style("text-anchor", "middle")
+					.style("font-size", "17px")
+					.text("1");
+				
+				svg.append("text")
+					.attr("x", 559)
+					.attr("y", 224)
+					.style("text-anchor", "middle")
+					.style("font-size", "17px")
+					.text("3");
+				
+				svg.append("text")
+					.attr("x", 532)
+					.attr("y", 188)
+					.style("text-anchor", "middle")
+					.style("font-size", "17px")
+					.text("2");
+				
+				svg.append("text")
+					.attr("x", 567)
+					.attr("y", 252)
+					.style("text-anchor", "middle")
+					.style("font-size", "17px")
+					.text("4");
+			
+				
+				svg.append("text")
+					.attr("x", 547)
+					.attr("y", 278)
+					.style("text-anchor", "middle")
+					.style("font-size", "17px")
+					.text("5");
+				
+				svg.append("text")
+					.attr("x", 536)
+					.attr("y", 298)
+					.style("text-anchor", "middle")
+					.style("font-size", "17px")
+					.text("6");
+				
+				
+
+				svg.append("text")
+					.attr("x", 499)
+					.attr("y", 307)
+					.style("text-anchor", "middle")
+					.style("font-size", "17px")
+					.text("7");
+
+				svg.append("text")
+					.attr("x", 467)
+					.attr("y", 303)
+					.style("text-anchor", "middle")
+					.style("font-size", "17px")
+					.text("8");
+			
+				svg.append("text")
+					.attr("x", 448)
+					.attr("y", 276)
+					.style("text-anchor", "middle")
+					.style("font-size", "17px")
+					.text("9");
+			
+			
+			
+				svg.append("text")
+					.attr("x", 438)
+					.attr("y", 253)
+					.style("text-anchor", "middle")
+					.style("font-size", "17px")
+					.text("10");
+				
+				svg.append("text")
+					.attr("x", 449)
+					.attr("y", 217)
+					.style("text-anchor", "middle")
+					.style("font-size", "17px")
+					.text("11");
+			
+				svg.append("text")
+					.attr("x", 463)
+					.attr("y", 191)
+					.style("text-anchor", "middle")
+					.style("font-size", "17px")
+					.text("12");
+
+				//Create lines
+				svg.append("path")
+					.datum(dataset)
+					.attr("class", "line")
+					.attr("d", line);
+				
+				svg.append("circle")
+					.attr("id", "gray")
+					.attr("fill", "teal" )
+					.attr("r", 15)
+					.attr("cx", w/2)
+					.attr("cy", h/2);
+
+
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'black')
+					.attr("x1", 225)
+					.attr("x2", 425)
+					.attr("y1", 250)
+					.attr("y2", 250);
+				
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'black')
+					.attr("x1", 240)
+					.attr("x2", 435)
+					.attr("y1", 105)
+					.attr("y2", 209);
+				
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'black')
+					.attr("x1", 356)
+					.attr("x2", 457)
+					.attr("y1", 13)
+					.attr("y2", 180);
+				
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'black')
+					.attr("x1", 499)
+					.attr("x2", 500)
+					.attr("y1", 174)
+					.attr("y2", 0);
+				
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'black')
+					.attr("x1", 540)
+					.attr("x2", 639)
+					.attr("y1", 185)
+					.attr("y2", 12);
+				
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'black')
+					.attr("x1", 540)
+					.attr("x2", 639)
+					.attr("y1", 185)
+					.attr("y2", 12);
+			
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'black')
+					.attr("x1", 567)
+					.attr("x2", 751)
+					.attr("y1", 215)
+					.attr("y2", 105);
+				
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'black')
+					.attr("x1", 577)
+					.attr("x2", 793)
+					.attr("y1", 250)
+					.attr("y2", 242);
+			
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'black')
+					.attr("x1", 562)
+					.attr("x2", 758)
+					.attr("y1", 286)
+					.attr("y2", 397);
+				
+				
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'black')
+					.attr("x1", 562)
+					.attr("x2", 758)
+					.attr("y1", 286)
+					.attr("y2", 397);
+				
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'black')
+					.attr("x1", 545)
+					.attr("x2", 638)
+					.attr("y1", 316)
+					.attr("y2", 494);
+				
+
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'black')
+					.attr("x1", 501)
+					.attr("x2", 502)
+					.attr("y1", 329)
+					.attr("y2", 499);
+				
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'black')
+					.attr("x1", 453)
+					.attr("x2", 363)
+					.attr("y1", 329)
+					.attr("y2", 473);
+				
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'black')
+					.attr("x1", 427)
+					.attr("x2", 255)
+					.attr("y1", 298)
+					.attr("y2", 399);
+				
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'red')
+					.attr("x1", 399)
+					.attr("x2", 233)
+					.attr("y1", 278)
+					.attr("y2", 316);
+				
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'red')
+					.attr("x1", 383)
+					.attr("x2", 384)
+					.attr("y1", 273)
+					.attr("y2", 286);
+			
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'red')
+					.attr("x1", 265)
+					.attr("x2", 269)
+					.attr("y1", 298)
+					.attr("y2", 314);
+				
+				
+				svg.append("text")
+					.attr("x", 383)
+					.attr("y", 295)
+					.attr("fill", "red")
+					.style("text-anchor", "middle")
+					.style("font-size", "8px")
+					.text("315");
+				
+				svg.append("text")
+					.attr("x", 383)
+					.attr("y", 295)
+					.attr("fill", "red")
+					.style("text-anchor", "middle")
+					.style("font-size", "8px")
+					.text("315");
+				
+				svg.append("text")
+					.attr("x", 269)
+					.attr("y", 317)
+					.attr("fill", "red")
+					.style("text-anchor", "middle")
+					.style("font-size", "8px")
+					.text("407");
+				
+				svg.append("text")
+					.attr("x", 269)
+					.attr("y", 317)
+					.attr("fill", "red")
+					.style("text-anchor", "middle")
+					.style("font-size", "8px")
+					.text("407");
+				
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'red')
+					.attr("x1", 326)
+					.attr("x2", 331)
+					.attr("y1", 284)
+					.attr("y2", 302);
+				
+				svg.append("text")
+					.attr("x", 329)
+					.attr("y", 310)
+					.attr("fill", "red")
+					.style("text-anchor", "middle")
+					.style("font-size", "8px")
+					.text("360");
+				
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'red')
+					.attr("x1", 351)
+					.attr("x2", 355)
+					.attr("y1", 279)
+					.attr("y2", 295);
+				
+
+				svg.append("line")
+					.attr("stroke-width", '0.5')
+					.attr("stroke", 'red')
+					.attr("x1", 297)
+					.attr("x2", 301)
+					.attr("y1", 292)
+					.attr("y2", 308);
+			});
+		
+		</script>
+	</body>
+</html>

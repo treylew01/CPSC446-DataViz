@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+        
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://unpkg.com/d3-simple-slider"></script>
+
+        <link
+        rel="stylesheet"
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+        crossorigin="anonymous"
+        />
+        <!--DOUBLE SLIDER PULLED FROM https://bl.ocks.org/johnwalley/e1d256b81e51da68f7feb632a53c3518-->
+      
+		<meta charset="utf-8">
+		<title>Slave Voyages</title>
+		
+		<style type="text/css">
+
+			html { 
+                font-family: "Tahoma"; 
+            }
+
+            #title {
+				float: center;
+    			margin-left: 600px;
+                top: 10px; 
+            }
+
+            #header {
+				float: center;
+    			margin-left: 545px;
+                top: 10px; 
+            }
+
+            #slider {
+                float: center;
+                margin-left: 650px;
+                top: 10px;
+            }
+            
+            #slider-values {
+                float: center;
+                margin-left: 500px;
+                top: 10px;
+            }
+
+            #value-range{
+                margin-left: 700px;
+                font-size: 24px;
+                font-weight: bold;
+            }
+
+            #title-graph1 {
+				float: center;
+    			margin-left: 500px;
+                top: 10px; 
+            }
+
+            #title-graph2 {
+				float: center;
+    			margin-left: 350px;
+                top: 10px; 
+            }
+
+            #title-graph3 {
+				float: center;
+    			margin-left: 20px;
+                top: 10px; 
+            }
+            
+        </style>
+            <h1 id="title">Slave Voyage Data</h1>
+            <h4 id="header">Data pulled from www.slavevoyages.org </h4>
+		</style>
+
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <script src="https://unpkg.com/topojson@3"></script>
+
+	</head>
+	<body>
+        <h2 id="slider">Year Ranges</h2>
+        <div class="col-lg-2"><p id="value-range"></p></div>
+        <div class="row align-items-center" id = "slider-values">
+            <div class="col-lg"><div id="slider-range"></div></div>
+        </div>
+        
+        
+        <h2 id="title-graph1">Total Slaves Dismbarked in Atlantic World</h2>
+        <svg width="1500" height="1000" id="chart_1"></svg>
+
+        <h2 id="title-graph2">Year vs Slaves Embarked For Each of the Major Powers</h2>
+        <svg width="1500" height="1000" id="chart_2"></svg>
+
+        <h2 id="title-graph3">Slaves Disembarked at Major Countries/Colonies/Regions involved in Slave Trade between specified years</h2>
+        <p>Simple ToolTip Enabled, Hover over Point for Place and Slaves Disembarked - Not all locations present </p>
+        <svg width="100%" height="500px" margin="10px" id="chart_3"></svg>
+
+        
+		<script type="text/javascript">
+
+            let width = 960,
+            height = 500;
+
+            let projection = d3.geoMercator()
+                //.center([0, 5 ])
+                .scale(275)
+                .rotate([85, -5 ])
+
+            let chart_3 = d3.select("#chart_3") 
+            let svg3 = chart_3.append("svg") 
+                .attr("class", "graph-svg-component");
+
+            let path = d3.geoPath()
+                .projection(projection);
+
+            let g1 = svg3.append("g");
+
+            
+            function find_max(start_year, end_year){
+                let max_years = [];
+                for (let i = 0; i <= 365; i++){
+                    if (years[i].year >= start_year && years[i].year <= end_year){
+                        max_years.push(d3.max(years[i].all_values))
+                    }
+                }
+                //console.log(d3.max(max_years))
+                return d3.max(max_years)
+            }
+
+            let dat_years = []
+            for (let i = 1501; i <= 1866; i++) {
+                dat_years.push(i)
+            }
+            
+            /*DOUBLE SLIDER PULLED FROM https://bl.ocks.org/johnwalley/e1d256b81e51da68f7feb632a53c3518*/
+
+            let slider_left = 1501
+            let slider_right = 1800
+            // Range
+            let sliderRange = d3
+                .sliderBottom()
+                .min(d3.min(dat_years))
+                .max(d3.max(dat_years))
+                .width(450)
+                .height(20)
+                .ticks(10)
+                .tickFormat(d3.format('.4r'))
+                .default([1600, 1800])
+                .fill('#2196f3')
+                .on('onchange', val => {
+                    d3.select('p#value-range').text(val.map(d3.format('.4r')).join('-'));
+                    update()
+                });
+
+            let gRange = d3
+                .select('div#slider-range')
+                .append('svg')
+                .attr('width', 500)
+                .attr('height', 100)
+                .append('g')
+                .attr('transform', 'translate(30,30)');
+
+            gRange.call(sliderRange);
+
+            d3.select('p#value-range').text(
+                sliderRange
+                .value()
+                .map(d3.format('.4r'))
+                .join('-')
+            );
+
+           
+
+        
+
+            //Width and height
+			let w = 1500;
+			let h = 1000;
+            let padding = 75;
+
+            let year;
+            let years = [];
+            
+            let chart_1 = d3.select("#chart_1") 
+            let svg = chart_1.append("svg") 
+				.append("svg")
+	       		.attr("width", w)
+	       		.attr("height", h);
+
+            let chart_2 = d3.select("#chart_2") 
+            let svg2 = chart_2.append("svg") 
+				.append("svg")
+	       		.attr("width", w)
+	       		.attr("height", h);
+
+
+            d3.csv("slave_voyage.csv").then( (data)=> {
+                for (let i = 0; i <= 365; i++) {
+                    year = {
+                        year: parseInt(Object.values(data[i])[0]),
+                        spain_embark: parseInt(Object.values(data[i])[1]),
+                        spain_disembark: parseInt(Object.values(data[i])[2]),
+                        por_embark: parseInt(Object.values(data[i])[3]),
+                        por_disembark: parseInt(Object.values(data[i])[4]),
+                        gb_embark: parseInt(Object.values(data[i])[5]),
+                        gb_disembark: parseInt(Object.values(data[i])[6]),
+                        neth_embark: parseInt(Object.values(data[i])[7]),
+                        neth_disembark: parseInt(Object.values(data[i])[8]),
+                        us_embark: parseInt(Object.values(data[i])[9]),
+                        us_disembark: parseInt(Object.values(data[i])[10]),
+                        fra_embark: parseInt(Object.values(data[i])[11]),
+                        fra_disembark: parseInt(Object.values(data[i])[12]),
+                        den_embark: parseInt(Object.values(data[i])[13]),
+                        den_disembark: parseInt(Object.values(data[i])[14]),
+                        total_embark: parseInt(Object.values(data[i])[15]),
+                        total_disembark: parseInt(Object.values(data[i])[16]),
+                        all_values: [parseInt(Object.values(data[i])[1]), parseInt(Object.values(data[i])[2]), parseInt(Object.values(data[i])[3]),
+                        parseInt(Object.values(data[i])[4]), parseInt(Object.values(data[i])[6]), parseInt(Object.values(data[i])[7]), parseInt(Object.values(data[i])[8]),
+                        parseInt(Object.values(data[i])[9]), parseInt(Object.values(data[i])[10]), parseInt(Object.values(data[i])[11]), parseInt(Object.values(data[i])[12]),
+                        parseInt(Object.values(data[i])[13]), parseInt(Object.values(data[i])[14]), parseInt(Object.values(data[i])[15]), parseInt(Object.values(data[i])[16])],
+                        all_nation_embark: [parseInt(Object.values(data[i])[1]), parseInt(Object.values(data[i])[3]),
+                        parseInt(Object.values(data[i])[5]), parseInt(Object.values(data[i])[7]), 
+                        parseInt(Object.values(data[i])[9]), parseInt(Object.values(data[i])[11])]
+                        };
+                    years.push(year);
+                    }
+                    
+                update()
+            });
+
+            disembark_locations = []
+            d3.csv("slave_voyage.csv").then( (data)=> {
+                for (let i = 0; i <= 365; i++) {
+                    disembark = {
+                        year: parseInt(Object.values(data[i])[0]),
+                        europe: parseInt(Object.values(data[i])[1]),
+                        northus: parseInt(Object.values(data[i])[2]),
+                        chesapeake: parseInt(Object.values(data[i])[3]),
+                        carolinas: parseInt(Object.values(data[i])[4])
+                        };
+                    disembark_locations.push(disembark);
+                    }
+            });
+
+            let disembark;
+            function find_total_disembark(start_year, end_year){
+               
+                let europe1 = 0,
+                    northus = 0,
+                    chesapeake = 0,
+                    carolinas = 0; 
+                d3.csv("slave_voyage.csv").then( (data)=> {
+                    for (let i = 0; i <= 365; i++) {
+                        let year = parseInt(Object.values(data[i])[0])
+                        if (year >= start_year && year <= end_year){
+                            europe1 += parseInt(Object.values(data[i])[1])
+                            northus += parseInt(Object.values(data[i])[2])
+                            chesapeake += parseInt(Object.values(data[i])[3])
+                            carolinas += parseInt(Object.values(data[i])[4])
+                        }
+                    }
+                
+                    let disembark = {
+                        europe: europe1,
+                        northus: northus,
+                        chesapeake: chesapeake,
+                        carolinas: carolinas
+                        };
+                    
+                    assembler(disembark)
+
+                    });
+                    return
+                }
+              
+            function assembler(data){
+                disembark = data
+            }
+            
+
+            function find_max_nations(start_year, end_year){
+                let max_years = [];
+                for (let i = 0; i <= 365; i++){
+                    if (years[i].year >= start_year && years[i].year <= end_year){
+                      
+                        max_years.push(d3.max(years[i].all_nation_embark))
+                    }
+                }
+                //console.log(d3.max(max_years))
+                return d3.max(max_years)
+            }
+        
+            function update(){
+            
+                svg.selectAll("rect").remove()
+                svg.selectAll("text").remove()
+                svg.selectAll("g").remove()
+
+                svg2.selectAll("g").remove()
+                svg2.selectAll("circle").remove()
+
+                svg3.selectAll("circle").remove()
+
+                let slider_text =  d3.select('p#value-range').text();
+
+                let slider_right = parseInt(slider_text.slice(5));
+                let slider_left = parseInt(slider_text.slice(0,4));
+
+                //let disembarked = find_total_disembark(slider_left, slider_right)
+
+                let xScale = d3.scaleLinear()
+								.domain([slider_left, slider_right])
+								.range([padding, w - padding * 2]);
+
+                let xAxis = d3.axisBottom()
+                    .scale(xScale)
+                    .ticks(20);
+        
+                let yScale = d3.scaleLinear()
+                            .domain([0, find_max(slider_left, slider_right)])
+                            .range([h - padding, padding]);
+
+                let yAxis = d3.axisLeft()
+                        .scale(yScale);
+
+                position = padding - (w/(slider_right-slider_left));
+                svg.selectAll("rect")
+                    .data(years)
+                    .enter()
+                    .append("rect")
+                    .attr("x", (d)=> {
+                        if(d.year >= slider_left && d.year <= slider_right){
+                            position += ((w - padding)/((slider_right-slider_left) - 3));
+                            return position
+                        }
+                    })
+                    .attr("y", ((d)=> {
+                        if(d.year >= slider_left && d.year <= slider_right){
+                                return  yScale(d.total_disembark)
+                            }
+                        }
+                    ))
+                    .attr("width", ((d)=> { return w/((slider_right - slider_left)) }))
+                    .attr("height", ((d)=> {
+                        if(d.year >= slider_left && d.year <= slider_right){
+                                return  h - yScale(d.total_disembark) - padding
+                            }
+                        }
+                    ))
+                    .attr("fill", "Olive");
+                
+                position = padding - (w/(slider_right-slider_left)) + 6;
+                svg.selectAll("text")
+					.data(years)
+					.enter()
+					.append("text")
+					.text((d)=> {
+                        if(d.year >= slider_left && d.year <= slider_right){return d.year}})
+					.attr("font-size",(d)=>{
+                        let years_checker = slider_right - slider_left
+                        console.log(years_checker)
+                        if (years_checker > 201){
+                            return "3px"
+                        }
+                        if (years_checker > 100){
+                            return "5px"
+                        }
+                        if (years_checker > 50){
+                            return "15px"
+                        }
+                        else{
+                            return "20px"
+                        }
+                    })
+					.attr("fill","black")
+                    .attr("font-family", "sans-serif")
+                    .attr("text-anchor", "end")
+                    .attr("transform", (d)=>{
+                        if(d.year >= slider_left && d.year <= slider_right){
+                            position += ((w - padding)/((slider_right-slider_left) - 3));
+                            return "translate("+position+", "+ (h-68) +"), rotate(-65)";
+                        }
+                    });
+
+                
+                svg.append("g")
+				    .attr("class", "axis")
+				    .attr("transform", "translate(" + padding + ", 0)")
+				    .call(yAxis);
+
+                svg.append("text")
+					.text("Slaves Disembarked")
+					.attr("font-size","15px")
+					.attr("fill","black")
+					.attr("stroke","black")
+                    .attr("transform", "translate(20, 500), rotate(-90)")
+                    .attr("font-family", "sans-serif")
+                
+                 svg.append("text")
+					.text("Year")
+					.attr("font-size","15px")
+					.attr("fill","black")
+					.attr("stroke","black")
+                    .attr("transform", "translate(750, 975)")
+                    .attr("font-family", "sans-serif")
+					
+                    
+                let yScale2 = d3.scaleLinear()
+                        .domain([0, find_max_nations(slider_left, slider_right)])
+                        .range([h - padding, padding]);
+
+                svg2.selectAll("circle.spain")
+                    .data(years)
+                    .enter()
+                    .append("circle")
+                    .attr("cx", (d)=> {
+                        if(d.year >= slider_left && d.year <= slider_right){
+                            return xScale(d.year);
+                        }
+                    })
+                    .attr("cy", (d)=> {
+                        if(d.year >= slider_left && d.year <= slider_right){
+                            return yScale2(d.spain_embark);
+                        }
+                    })
+                    .attr("r", 3)
+                    .attr("fill", "yellow");
+                
+        
+                 svg2.append("text")
+					.text("Spain/Uruguay")
+					.attr("font-size","15px")
+					.attr("fill","yellow")
+                    .attr("transform", "translate(1400, 400)")
+                    .attr("font-family", "sans-serif")
+
+                svg2.selectAll("circle.portugal")
+                    .data(years)
+                    .enter()
+                    .append("circle")
+                    .attr("cx", (d)=> {
+                        if(d.year >= slider_left && d.year <= slider_right){
+                            return xScale(d.year);
+                        }
+                    })
+                    .attr("cy", (d)=> {
+                        if(d.year >= slider_left && d.year <= slider_right){
+                            return yScale2(d.por_embark);
+                        }
+                    })
+                    .attr("r", 3)
+                    .attr("fill", "green");
+                
+                svg2.append("text")
+					.text("Portugal/Brazil")
+					.attr("font-size","15px")
+					.attr("fill","green")
+                    .attr("transform", "translate(1400, 425)")
+                    .attr("font-family", "sans-serif")
+                
+                svg2.selectAll("circle.gb")
+                    .data(years)
+                    .enter()
+                    .append("circle")
+                    .attr("cx", (d)=> {
+                        if(d.year >= slider_left && d.year <= slider_right){
+                            return xScale(d.year);
+                        }
+                    })
+                    .attr("cy", (d)=> {
+                        if(d.year >= slider_left && d.year <= slider_right){
+                            return yScale2(d.gb_embark);
+                        }
+                    })
+                    .attr("r", 3)
+                    .attr("fill", "red");
+                
+                svg2.append("text")
+					.text("Great Britain")
+					.attr("font-size","15px")
+					.attr("fill","red")
+                    .attr("transform", "translate(1400, 450)")
+                    .attr("font-family", "sans-serif")
+                
+                svg2.selectAll("circle.neth")
+                    .data(years)
+                    .enter()
+                    .append("circle")
+                    .attr("cx", (d)=> {
+                        if(d.year >= slider_left && d.year <= slider_right){
+                            return xScale(d.year);
+                        }
+                    })
+                    .attr("cy", (d)=> {
+                        if(d.year >= slider_left && d.year <= slider_right){
+                            return yScale2(d.neth_embark);
+                        }
+                    })
+                    .attr("r", 3)
+                    .attr("fill", "orange");
+
+                svg2.append("text")
+					.text("Netherlands")
+					.attr("font-size","15px")
+					.attr("fill","orange")
+                    .attr("transform", "translate(1400, 475)")
+                    .attr("font-family", "sans-serif")
+                
+                svg2.selectAll("circle.us")
+                    .data(years)
+                    .enter()
+                    .append("circle")
+                    .attr("cx", (d)=> {
+                        if(d.year >= slider_left && d.year <= slider_right){
+                            return xScale(d.year);
+                        }
+                    })
+                    .attr("cy", (d)=> {
+                        if(d.year >= slider_left && d.year <= slider_right){
+                            return yScale2(d.us_embark);
+                        }
+                    })
+                    .attr("r", 3)
+                    .attr("fill", "blue");
+
+                svg2.append("text")
+					.text("USA")
+					.attr("font-size","15px")
+					.attr("fill","blue")
+                    .attr("transform", "translate(1400, 500)")
+                    .attr("font-family", "sans-serif")
+
+                svg2.selectAll("circle.france")
+                    .data(years)
+                    .enter()
+                    .append("circle")
+                    .attr("cx", (d)=> {
+                        if(d.year >= slider_left && d.year <= slider_right){
+                            return xScale(d.year);
+                        }
+                    })
+                    .attr("cy", (d)=> {
+                        if(d.year >= slider_left && d.year <= slider_right){
+                            return yScale2(d.fra_embark);
+                        }
+                    })
+                    .attr("r", 3)
+                    .attr("fill", "cyan");
+                
+                svg2.append("text")
+					.text("France")
+					.attr("font-size","15px")
+					.attr("fill","cyan")
+                    .attr("transform", "translate(1400, 525)")
+                    .attr("font-family", "sans-serif")
+
+                svg2.append("text")
+					.text("Legend")
+					.attr("font-size","15px")
+					.attr("fill","Black")
+                    .attr("transform", "translate(1400, 375)")
+                    .attr("font-family", "sans-serif")
+
+                let yAxis2 = d3.axisLeft()
+                    .scale(yScale2);
+
+                svg2.append("g")
+				    .attr("class", "axis")
+				    .attr("transform", "translate(0," + (h - padding) + ")")
+				    .call(xAxis);
+
+                svg2.append("g")
+				    .attr("class", "axis")
+				    .attr("transform", "translate(" + padding + ", 0)")
+				    .call(yAxis2);
+
+                svg2.append("text")
+					.text("Slaves Embarked")
+					.attr("font-size","15px")
+					.attr("fill","black")
+					.attr("stroke","black")
+                    .attr("transform", "translate(20, 500), rotate(-90)")
+                    .attr("font-family", "sans-serif")
+                
+                svg2.append("text")
+					.text("Year")
+					.attr("font-size","15px")
+					.attr("fill","black")
+					.attr("stroke","black")
+                    .attr("transform", "translate(750, 975)")
+                    .attr("font-family", "sans-serif")
+
+
+                  // load and display the World
+                d3.json("https://unpkg.com/world-atlas@1/world/110m.json").then(function(topology) {
+                    //DRAWS THE WORLD
+                    g1.selectAll("path")
+                    .data(topojson.feature(topology, topology.objects.countries).features)
+                    .enter().append("path")
+                    .attr("d", path);
+
+                    //VARIABLES TO GET TOTAL DISEMBARKATION OF SLAVES
+                    let europe1 = 0,
+                    africa1 = 0,
+                    usa = 0,
+                    jamaica = 0,
+                    barbados = 0,
+                    haiti = 0,
+                    brazil = 0,
+                    cuba = 0,
+                    dutchguiana = 0,
+                    ca = 0
+                    rdlp = 0; 
+                    d3.csv("slave_disembark.csv").then( (data)=> {
+                        for (let i = 0; i <= 365; i++) {
+                            let year = parseInt(Object.values(data[i])[0])
+                            if (year >= slider_left && year <= slider_right){
+                                europe1 += parseInt(Object.values(data[i])[1])
+                                africa1 += parseInt(Object.values(data[i])[36])
+                                usa +=  parseInt(Object.values(data[i])[2]) + parseInt(Object.values(data[i])[3]) + parseInt(Object.values(data[i])[4]) + parseInt(Object.values(data[i])[5]) + parseInt(Object.values(data[i])[6]) 
+                                jamaica += parseInt(Object.values(data[i])[7])
+                                barbados += parseInt(Object.values(data[i])[8])
+                                haiti += parseInt(Object.values(data[i])[18])
+                                brazil +=  parseInt(Object.values(data[i])[31]) + parseInt(Object.values(data[i])[32]) + parseInt(Object.values(data[i])[33]) + parseInt(Object.values(data[i])[34]) + parseInt(Object.values(data[i])[35])
+                                cuba += parseInt(Object.values(data[i])[27])
+                                dutchguiana += parseInt(Object.values(data[i])[25])
+                                ca += parseInt(Object.values(data[i])[29])
+                                rdlp += parseInt(Object.values(data[i])[30])
+                            }
+                        }
+                    
+                    //KEEP TRACK OF ALL VALUES
+                    let all_locations = []
+                    let europestats = {
+                        data: europe1,
+                        Long:  -3.7492,
+                        Lat: 40.4637,
+                        location: "Europe"
+                    };
+                    let africastats = {
+                        data: africa1,
+                        Long:  0.1864,
+                        Lat: 6.6131,
+                        location: "Africa"
+                    };
+                    let usstats = {
+                        data: usa,
+                        Long:   -95.7129,
+                        Lat: 37.0902,
+                        location: "United States"
+                    };
+                    let jamaicastats = {
+                        data: jamaica,
+                        Long:   -77.298,
+                        Lat: 18.10906,
+                        location: "Jamaica"
+                    };
+                    let barbadosstats = {
+                        data: barbados,
+                        Long:   -59.5432,
+                        Lat: 13.1939,
+                        location: "Barbados"
+                    };
+                    let haitistats = {
+                        data: haiti,
+                        Long:   -72.2852,
+                        Lat: 18.9712,
+                        location: "Haiti"
+                    };
+                    let brazilstats = {
+                        data: brazil,
+                        Long:   -51.9253,
+                        Lat: -14.2350,
+                        location: "Brazil"
+                    };
+                    let cubastats = {
+                        data: cuba,
+                        Long:   -77.7812,
+                        Lat: 21.5218,
+                        location: "Cuba"
+                    };
+                    let dgstats = {
+                        data: dutchguiana,
+                        Long: -56.0278,
+                        Lat: 3.9193,
+                        location: "Dutch Guiana"
+                    };
+                    let castats = {
+                        data: ca,
+                        Long: -86.2419,
+                        Lat: 15.2,
+                        location: "Central America"
+                    };
+                    let rdlpstats = {
+                        data: rdlp,
+                        Long: -58.3816,
+                        Lat: -34.6037,
+                        location: "Rio De La Plata"
+                    }
+                    all_locations = [usstats, europestats, africastats, jamaicastats, barbadosstats, haitistats, brazilstats, cubastats, dgstats, castats, rdlpstats]
+
+                    svg3.selectAll("circle")
+						   .data(all_locations)
+						   .enter()
+						   .append("circle")
+						   .attr("cx", (d)=> {
+							   return projection([d.Long, d.Lat])[0];
+						   })
+						   .attr("cy", (d)=> {
+							   return projection([d.Long, d.Lat])[1];
+						   })
+						   .attr("r", (d)=> {
+								return Math.sqrt(parseInt(d.data) * 0.001);
+						   })
+						   .style("fill", "yellow")
+						   .style("stroke", "gray")
+						   .style("stroke-width", 0.25)
+						   .append("title")			//Simple tooltip
+						   .text((d)=> {
+								return d.location + "- Slaves Disembarked between "+slider_left+ " and " +slider_right+": " + d.data;
+						   });
+                        });
+                    });                
+                }	
+		</script>
+	</body>
+</html>

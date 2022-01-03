@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <title>Course Ratings</title>
+        <script type="text/javascript" src="d3.js"></script>
+        <style type="text/css">
+            html { 
+                font-family: "Tahoma"; 
+            }
+
+            #title {
+                    text-align: center;
+                    }
+        </style>
+        <h1 id="title">AFAM Studies Course Ratings</h1>
+    </head>
+    <body>
+        <script type="text/javascript">
+
+			// set up a canvas for svg elements
+			let w = 1100;
+			let h = 750;
+            let padding = 25;
+
+            let words_x = ["much greater", "greater", "same", "less", "much less"]
+            let words_y = ["poor", "below average", "good", "very good", "excellent"]
+
+            let afamclass;
+            let all_classes = [];
+
+            let arraymatrix = [
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0]
+            ]
+
+            let percents = [];
+
+			let svg = d3.select("body")
+				.append("svg")
+	       		.attr("width", w)
+	       		.attr("height", h);
+            
+            d3.csv("afam_course_ratings.csv").then( (data)=> {
+                for (let i = 0; i <= 22; i++) {
+                    afam = {
+                        Overall: Math.round(parseFloat(Object.values(data[i])[1])),
+                        Work: Math.round(parseFloat(Object.values(data[i])[2]))
+                    };
+                    all_classes.push(afam);
+                }
+                let x_matrix = 0;
+                let y_matrix = 0;
+                for (let i = 0; i <= 22; i++) {
+                    x_matrix = all_classes[i].Overall;
+                    y_matrix = all_classes[i].Work;
+                    arraymatrix[x_matrix - 1][y_matrix - 1]++;
+                }
+                for (let i = 0; i < 5; i++) {
+                    for (let j = 0; j < 5; j++) {
+                        let checkvalue = arraymatrix[i][j];
+                        if (checkvalue > 0){
+                            checkvalue = (checkvalue/23) * 100
+                        }
+                        arraymatrix[i][j] = checkvalue
+                    }
+                }
+                for (let i = 0; i < 5; i++) {
+                    for (let j = 0; j < 5; j++) {
+                        let checkvalue = arraymatrix[i][j];
+                        percents.push(checkvalue)
+                    }
+                }
+				console.log(data);
+                console.log(percents);
+
+                svg.selectAll("rect")
+                    .data(percents)
+                    .enter()
+                    .append("rect")
+                    .attr("x", ((d, i)=> {
+                        if (i <= 4){
+                            return i * 100 + 300;
+                        }
+                        if (i >= 5 && i < 10){
+                            return i * 100 - 200;
+                        }
+                        if (i >= 10 && i < 15){
+                            return i * 100 - 700;
+                        }
+                        if (i >= 15 && i < 20){
+                            return i * 100 - 1200;
+                        }
+                        if (i >= 20 && i < 25){
+                            return i * 100 - 1700;
+                        }
+                    }))
+                    .attr("y", ((d, i)=> {
+                        if (i <= 4){
+                            return 30;
+                        }
+                        if (i >= 5 && i < 10){
+                            return 130;
+                        }
+                        if (i >= 10 && i < 15) {
+                            return 230;
+                        }
+                        if (i >= 15 && i < 20) {
+                            return 330;
+                        }
+                        if (i >= 20 && i < 25) {
+                            return 430;
+                        }
+                    }))
+                    .attr("width", 100)
+					.attr("height", 100)
+                    .attr("opacity", function(d) {
+                        if (d == 0) {
+                            return 0.08;
+                        }
+                        else {
+                            return (d / 100) + 0.08;
+                        }
+                    })
+                
+                svg.selectAll("text")
+					.data(percents)
+					.enter()
+					.append("text")
+					.text((d)=> {return d.toFixed(2) + "%"})
+					.attr("font-size","15px")
+					.attr("fill","black")
+					.attr("stroke","black")
+                    .attr("y", ((d, i)=> {
+                        if (i <= 4){
+                            return 80;
+                        }
+                        if (i >= 5 && i < 10){
+                            return 180;
+                        }
+                        if (i >= 10 && i < 15) {
+                            return 280;
+                        }
+                        if (i >= 15 && i < 20) {
+                            return 380;
+                        }
+                        if (i >= 20 && i < 25) {
+                            return 480;
+                        }
+                    }))
+                    .attr("x", ((d, i)=> {
+                        if (i <= 4){
+                            return i * 100 + 325;
+                        }
+                        if (i >= 5 && i < 10){
+                            return i * 100 - 175;
+                        }
+                        if (i >= 10 && i < 15){
+                            return i * 100 - 675;
+                        }
+                        if (i >= 15 && i < 20){
+                            return i * 100 - 1175;
+                        }
+                        if (i >= 20 && i < 25){
+                            return i * 100 - 1675;
+                        }
+                    }))
+                    .attr("font-family", "sans-serif")
+                
+                    svg.append("text")
+                        .attr("x", 830)
+                        .attr("y", 80 )
+                        .style("font-size", "20px")
+                        .attr("font-family", "sans-serif")
+                        .text("poor");
+                    
+                    svg.append("text")
+                        .attr("x", 830)
+                        .attr("y", 180 )
+                        .style("font-size", "20px")
+                        .attr("font-family", "sans-serif")
+                        .text("below average");
+                
+                    svg.append("text")
+                        .attr("x", 830)
+                        .attr("y", 280 )
+                        .style("font-size", "20px")
+                        .attr("font-family", "sans-serif")
+                        .text("good");
+                    
+                    svg.append("text")
+                        .attr("x", 830)
+                        .attr("y", 380 )
+                        .style("font-size", "20px")
+                        .attr("font-family", "sans-serif")
+                        .text("very good");
+                    
+                    svg.append("text")
+                        .attr("x", 830)
+                        .attr("y", 480 )
+                        .style("font-size", "20px")
+                        .attr("font-family", "sans-serif")
+                        .text("excellent");
+
+
+
+
+
+                    svg.append("text")
+                        .attr("x", 300)
+                        .attr("y", 575 )
+                        .style("font-size", "20px")
+                        .attr("font-family", "sans-serif")
+                        .text("much less");
+                    
+                    svg.append("text")
+                        .attr("x", 425)
+                        .attr("y",  575 )
+                        .style("font-size", "20px")
+                        .attr("font-family", "sans-serif")
+                        .text("less");
+                
+                    svg.append("text")
+                        .attr("x", 525)
+                        .attr("y",  575 )
+                        .style("font-size", "20px")
+                        .attr("font-family", "sans-serif")
+                        .text("same");
+                    
+                    svg.append("text")
+                        .attr("x", 625)
+                        .attr("y",  575 )
+                        .style("font-size", "20px")
+                        .attr("font-family", "sans-serif")
+                        .text("greater");
+                    
+                    svg.append("text")
+                        .attr("x", 710)
+                        .attr("y",  575 )
+                        .style("font-size", "20px")
+                        .attr("font-family", "sans-serif")
+                        .text("much greater");
+					
+					
+					
+            
+			});
+
+		</script>
+    </body>
+</html>

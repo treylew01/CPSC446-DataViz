@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3: Cancer Survival Plots in Tufte's Style</title>
+		<script type="text/javascript" src="d3.js"></script> 
+		<style type="text/css">
+			/* No style rules here yet */		
+		</style>
+	</head>
+	<body> 
+		
+	       <script type="text/javascript">
+
+
+	      // set up size parameters
+		let w = 4000;
+		let h = 4000;
+		let h_scale = .01*h;
+		let text_loc = 10;
+		let c1 = 250; 
+		let c2 = 400; 
+		let c3 = 550; 
+		let c4 = 700;
+		let padding = 100; 
+	
+
+	      // set up svg area in body of html
+	      	let svg = d3.select("body")
+					.append("svg")
+	       			.attr("width", w)
+	       			.attr("height",h);	
+	   
+
+              // function to create SVG path statement from a list of points
+	      	let lineGenerator = d3.line();
+
+	      // function to parse csv file data
+		let rowConverter = (d)=> {
+				return {
+					Type: d.Type,
+					t5yr:  parseFloat(d.t5yr),
+					t10yr: parseFloat(d.t10yr),
+					t15yr: parseFloat(d.t15yr),
+					t20yr: parseFloat(d.t20yr)
+				};
+			}
+
+		
+		d3.csv("cancer_survival.csv", rowConverter).then((dataset)=>{
+			
+		      	 console.log(dataset); // can look at Console window to see data is read in properly
+
+			 svg.selectAll("path")	
+					.data(dataset)
+					.enter()
+					.append("path")				
+					.attr('d',
+						((d)=> 
+							{return lineGenerator ([[c1, (h-h_scale*d.t5yr) + padding],
+										[c2, (h-h_scale*d.t10yr) + padding],
+										[c3, (h-h_scale*d.t15yr) + padding],
+										[c4, (h-h_scale*d.t20yr) + padding]])
+												}))
+					.attr("stroke-width", 5)
+					// paths are semi-transparent and different colors depending on 5 and 20 year values
+				        .attr("stroke",(d) =>
+						{return ("rgba(" + parseInt(255-2*d.t5yr)  + "," 
+									+parseInt(2*d.t20yr) +"," +  parseInt(2*d.t5yr) + " ,0.5)")} )
+                                        .attr("fill", "none");  
+			 
+			svg.selectAll("text.leftlabels")
+					.data(dataset)
+				        .enter()
+					.append("text")
+					.text((d)=> {return d.Type})
+					.attr("font-size","20px")
+					.attr("fill","black")
+					.attr("stroke","black")
+					.attr("x",text_loc)
+                                        .attr("font-family", "sans-serif")
+					.attr("y",(d)=> {return(h-h_scale*d.t5yr) + padding});
+			
+			svg.selectAll("text5yearlabels")
+					.data(dataset)
+				        .enter()
+					.append("text")
+					.text((d)=> {return d.t5yr})
+					.attr("font-size","15px")
+					.attr("fill","black")
+					.attr("stroke","black")
+					.attr("x", 235)
+                  	.attr("font-family", "sans-serif")
+					.attr("y",(d)=> {return(h-h_scale*d.t5yr) + padding});
+			
+			svg.selectAll("text10yearlabels")
+					.data(dataset)
+				        .enter()
+					.append("text")
+					.text((d)=> {return d.t10yr})
+					.attr("font-size","15px")
+					.attr("fill","black")
+					.attr("stroke","black")
+					.attr("x", 370)
+                  	.attr("font-family", "sans-serif")
+					.attr("y",(d)=> {return(h-h_scale*d.t10yr) + padding});
+		
+			svg.selectAll("text15yearlabels")
+					.data(dataset)
+				        .enter()
+					.append("text")
+					.text((d)=> {return d.t15yr})
+					.attr("font-size","15px")
+					.attr("fill","black")
+					.attr("stroke","black")
+					.attr("x", 540)
+                  	.attr("font-family", "sans-serif")
+					.attr("y",(d)=> {return(h-h_scale*d.t15yr) + padding});
+		
+			svg.selectAll("text20yearlabels")
+					.data(dataset)
+				        .enter()
+					.append("text")
+					.text((d)=> {return d.t20yr})
+					.attr("font-size","15px")
+					.attr("fill","black")
+					.attr("stroke","black")
+					.attr("x", 680)
+                  	.attr("font-family", "sans-serif")
+					.attr("y",(d)=> {return(h-h_scale*d.t20yr) + padding});
+			
+			svg.selectAll("text.rightlabels")
+					.data(dataset)
+				        .enter()
+					.append("text")
+					.text((d)=> {
+						let x = d.t20yr - d.t5yr 
+						return Math.round(x * 100) / 100 + "% changed"})
+					.attr("font-size","20px")
+					.attr("fill","black")
+					.attr("stroke","black")
+					.attr("x",text_loc + 720)
+                                        .attr("font-family", "sans-serif")
+					.attr("y",(d)=> {return(h-h_scale*d.t20yr) + padding});
+			
+			svg.append("text")
+				.attr("x", 275)
+				.attr("y", 25 )
+				.style("font-size", "30px")
+				.attr("font-family", "sans-serif")
+				.attr("fill","black")
+				.attr("stroke","black")
+				.text("Estimates of % Survival Rates");
+			
+			svg.append("text")
+				.attr("x", 225)
+				.attr("y", 90 )
+				.style("font-size", "20px")
+				.attr("font-family", "sans-serif")
+				.attr("fill","black")
+				.attr("stroke","black")
+				.text("5 year");
+		
+			svg.append("text")
+				.attr("x", 370)
+				.attr("y", 90 )
+				.style("font-size", "20px")
+				.attr("font-family", "sans-serif")
+				.attr("fill","black")
+				.attr("stroke","black")
+				.text("10 year");
+			
+			svg.append("text")
+				.attr("x", 510)
+				.attr("y", 90 )
+				.style("font-size", "20px")
+				.attr("font-family", "sans-serif")
+				.attr("fill","black")
+				.attr("stroke","black")
+				.text("15 year");
+			
+			svg.append("text")
+				.attr("x", 680)
+				.attr("y", 90 )
+				.style("font-size", "20px")
+				.attr("font-family", "sans-serif")
+				.attr("fill","black")
+				.attr("stroke","black")
+				.text("20 year");
+					
+			});
+		</script>
+	</svg>
+        </body>
+</html>

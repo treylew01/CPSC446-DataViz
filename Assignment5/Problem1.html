@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Problem 1</title>
+		<script type="text/javascript" src="d3.js"></script>
+		<style type="text/css">
+
+			#title {
+				float: center;
+    			margin-left: 300px;
+                top: 10px; 
+                }
+			
+			.euler-line {
+				fill: none;
+				stroke:#00008B;
+				stroke-width: 1;
+			}	
+
+			#euler-step{
+				float: center;
+				position: absolute; 
+    			margin-left: 1000px;
+                top: 500px;
+			}
+
+			#wrapper {
+				margin-left:auto;
+				margin-right:auto;
+				width:960px;
+			}
+
+			input {
+				height: 700px;
+				width: 10px;
+
+                position: fixed; 
+				top: 130px; 
+				right: 1000px; 
+
+				/* Orient vertically */
+				-webkit-appearance: slider-vertical;
+				writing-mode: bt-lr;
+			}
+
+			#top-range{
+				float: center;
+				position: fixed; 
+    			top: 70px; 
+				right: 993px; 
+			}
+
+			#bottom-range{
+				float: center;
+				position: fixed; 
+    			top: 825px; 
+				right: 985px; 
+			}
+
+		</style>
+		<h1 id="title">Arrange Spatial Data --Vectors</h1>
+		<h2 id="euler-step">Click Slide!</h2>
+	</head>
+	<div id="wrapper">
+	<body>
+		<h2 id="top-range">1/2</h2>
+		<input id="slider" oninput="change_step()" type="range" min="0.01" max=".5" step="0.001" value="0.5" orient="vertical">
+		<h3 id="bottom-range">1/100</h3>
+	
+		<script type="text/javascript">
+
+			let labels_graph = [-3, -2, -1, 0, 1, 2, 3]
+
+			let w = 800;
+			let h = 800;
+
+            let padding = 40;
+
+			let startx = w/2 - 33
+			let starty = h/2 - 30
+
+			let consta = 95
+			let constb = 90
+						
+			let arrow;
+			let arrows = [];
+
+			let svg = d3.select("body")
+				.append("svg")
+				.attr("width", w)
+				.attr("height", h)
+				.attr("y", 100);
+			
+			let g = d3.select("svg").append("g");
+			
+			for (let i = 46; i <= h - padding; i += 46) {
+				svg.append("line")
+					.style('stroke', 'black')
+					.attr("x1", padding)
+					.attr("y1", i)
+					.attr("x2", w - padding )
+					.attr("y2", i)
+					.attr("class", "line")
+					.attr("stroke-width", (d)=> { 
+						if (i == 368){
+							return 2
+						}
+						else{
+							return .15
+						}
+					})
+				};
+
+			for (let i = 46; i <= w - padding; i += 46) {
+				svg.append("line")
+					.style('stroke', 'black')
+					.attr("x1", i)
+					.attr("y1", padding)
+					.attr("x2", i )
+					.attr("y2", h - padding)
+					.attr("class", "line")
+					.attr("stroke-width", (d)=> { 
+						if (i == 368){
+							return 2
+						}
+						else{
+							return .15
+						}
+					})
+				};
+			
+			svg.selectAll("text.labels")
+			    .data(labels_graph)
+			    .enter()
+			    .append("text")
+			    .attr("y", h/2 - 15)
+			    .attr("x", (d,i)=> {return i*93 + 92})
+                .attr("font-size","15px")
+			    .attr("fill","black")
+                .text((d)=> {
+			   		return d;
+			   })
+
+			svg.selectAll("text.values")
+			    .data(labels_graph)
+			    .enter()
+			    .append("text")
+			    .attr("x", w/2 - 24)
+			    .attr("y", (d,i)=> {return i*93 + 92})
+                .attr("font-size","15px")
+			    .attr("fill","black")
+                .text((d)=> {
+					if (d != 0){
+						return d;
+					}
+			   })
+
+		function change_step() {
+			let DT = document.getElementById('slider').value;
+			
+			g.selectAll("line").remove();
+			g.selectAll("circle").remove();
+
+			let x = 0;
+    		let y = -1;
+
+			let final_x = 0
+			let final_y = 0
+
+			while (x < .01 || y > -1.01){
+				let old_x = x;
+				let old_y = y;
+
+				let vel_x = -y;
+				let vel_y = x/2;
+
+				g.append("circle")
+					.attr("cx", (x * consta) + startx)
+					.attr("cy", (y * -constb) + starty)
+					.attr("r", DT * 10)
+					.style("fill", "#E75480");
+
+				let new_x = x + vel_x * DT;
+				let new_y = y + vel_y * DT;
+
+				g.append("line")
+					.attr("x1", (new_x * consta) + startx)
+					.attr("y1", (new_y * -constb)+ starty)
+					.attr("x2", (old_x * consta) + startx)
+					.attr("y2", (old_y * -constb) + starty)
+					.attr("class", "euler-line")
+				
+				x = new_x
+				y = new_y
+			}
+		
+			g.append("circle")
+				.attr("cx", (x * consta) + startx)
+				.attr("cy", (y * -constb) + starty)
+				.attr("r", DT * 10)
+				.style("fill", 	"#E75480");
+			
+			let title_change = document.getElementById('euler-step');
+			title_change.innerHTML = "Euler DT= " + DT;
+		}
+		</script>
+	</body>
+</div>
+</html>

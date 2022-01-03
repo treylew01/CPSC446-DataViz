@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Question 4 Comparison</title>
+		<script type="text/javascript" src="d3.js"></script>
+		<style type="text/css">
+			html { 
+                font-family: "Tahoma"; 
+            }
+
+            #title {
+				float: left;
+    			margin-left: 200px;
+                    }
+		
+        </style>
+        <h1 id="title">Age of Highest degree Vs. Age of Nobel Prize</h1>
+		</style>
+	</head>
+	<body>
+		<key1 style = " position: absolute; top: 75%; left: 79%; transform: translate(-75%, -77%);"> Men </key1>
+		<keybox1 style=" width: 15px; height: 15px; position: absolute; top: 75%; left: 75%; transform: translate(-75%, -77%); background-color: blue;"></keybox1>
+		  
+		<key1 style = " position: absolute; top: 79%; left: 79%; transform: translate(-77%, -77%);"> Women </key1>
+		<keybox1 style=" width: 15px; height: 15px; position: absolute; top: 79%; left: 75%; transform: translate(-77%, -77%); background-color: red;"></keybox1>
+		
+		<script type="text/javascript">
+
+			//Width and height
+			let w = 1100;
+			let h = 1100;
+            let padding = 40;
+		
+			let scientists = [];
+           
+			let max_prizeage = 0;
+			let min_prizeage = 5000;
+			
+			let max_year = 0;
+			let min_year = 5000;
+
+            let scientist;
+			
+            //Create SVG element
+			let svg = d3.select("body")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+
+			d3.csv("Jones_Weinberg_2011_PNAS.csv").then( (data)=> {
+                for (let i = 0; i <= 524; i++) {
+					let ageofscientist = parseInt(Object.values(data[i])[3]) - parseInt(Object.values(data[i])[2]);
+                    scientist = {
+                        name:  Object.values(data[i])[0],
+                        field: Object.values(data[i])[1],
+						birthyear: parseInt(Object.values(data[i])[2]),
+        				prizeyear: parseInt(Object.values(data[i])[3]),
+        				midyear: parseInt(Object.values(data[i])[4]),
+        				deathyear: parseInt(Object.values(data[i])[5]),
+        				tore:  parseInt(Object.values(data[i])[6]),
+        				degage: parseInt(Object.values(data[i])[7]),
+						age:  ageofscientist
+                        };
+                    scientists.push(scientist);
+        
+					if (ageofscientist >= max_prizeage){
+							max_prizeage = ageofscientist
+						}
+					if ((parseInt(Object.values(data[i])[3])) >= max_year){
+							max_year = (parseInt(Object.values(data[i])[3]))
+						}
+					if (ageofscientist <= min_prizeage){
+							min_prizeage = ageofscientist
+						}
+					if ((parseInt(Object.values(data[i])[3])) <= min_year){
+							min_year = (parseInt(Object.values(data[i])[3]))
+						}
+                }
+				console.log(data);
+            
+            let xScale = d3.scaleLinear()
+								.domain([min_year - 2, max_year + 2])
+								 
+								 .range([padding, w - padding]);
+
+			let yScale = d3.scaleLinear()
+			.domain([min_prizeage - 2, max_prizeage + 2])
+								 .range([h - padding , padding]);
+
+            var xAxis = d3.axisBottom()
+              .scale(xScale)
+              .ticks(20);
+
+            var yAxis = d3.axisLeft()
+              .scale(yScale)
+              .ticks(20);
+			
+			
+			svg.selectAll("circle")
+			   .data(scientists)
+			   .enter()
+			   .append("circle")
+			   .attr("cx", (d)=> {
+			   		return xScale(d.prizeyear);
+			   })
+			   .attr("cy", (d)=> {
+			   		return yScale(d.age);
+			   })
+			   .attr("r", 5)
+			   .on("mouseover",function (event,d) {
+
+					//Get this bar's x/y values, then augment for the tooltip
+					let xPosition = xScale(d.prizeyear);
+					let yPosition = yScale(d.age);
+
+					//Create the tooltip label
+					svg.append("text")
+						.attr("id", "tooltip")
+						.attr("x", xPosition)
+						.attr("y", yPosition)
+						.attr("text-anchor", "middle")
+						.attr("font-family", "sans-serif")
+						.attr("font-size", "11px")
+						.attr("font-weight", "bold")
+						.attr("fill", "black")
+						.text(d.name);
+			   })
+			   .on("mouseout", function() {
+			   
+			   		//Remove the tooltip
+			   		d3.select("#tooltip").remove();
+			   
+		  		})
+				.attr("fill",  (d)=> {
+			   		//let h = 40 *  d.p + 120
+					//var color = "hsl("+h+", 100%, 50%)"
+					if (d.name == "Curie, Marie" || d.name == "Mayer, Maria Goeppert" || 
+					d.name == "Joliot-Curie, Irene" || d.name == "Hodgkin, Dorothy" || 
+					d.name == "Yalow, Rosalyn" || d.name == "McClintock, Barbara" || d.name == "Elion, Gertrude"
+					|| d.name == "Nusslein-Volhard, Christiane" || d.name == "Buck, Linda" || d.name == "Levi-Montalcini, Rita"){
+						var color = "red"
+						return (color);
+					}
+					else{
+						var color = "blue"
+						return (color);
+					}
+				  })
+			
+				svg.append("g")
+					.attr("class", "x axis")
+					.attr("transform", "translate(0," + (h - padding) + ")")
+					.call(xAxis);
+
+				svg.append("g")
+					.attr("class", "y axis")
+					.attr("transform", "translate(" + padding + ",0)")
+					.call(yAxis);
+				
+
+				svg.append("text")
+					.attr("y", 1095)
+					.attr("x", 535)
+					.style("text-anchor", "middle")
+					.style("font-size", "12px")
+					.attr("font-family", "sans-serif")
+					.attr("font-weight", "bold")
+					.text("Prize Year");
+
+				svg.append("text")
+					.attr("transform", "rotate(-90)")
+					.attr("y", -3)
+					.attr("x", -500)
+					.attr("dy", "1em")
+					.style("text-anchor", "middle")
+					.style("font-size", "12px")
+					.attr("font-family", "sans-serif")
+					.attr("font-weight", "bold")
+					.text("Age of Nobel Prize (Years)");
+			   
+            })
+		</script>
+	</body>
+</html>

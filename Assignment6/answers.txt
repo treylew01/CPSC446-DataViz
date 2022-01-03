@@ -1,0 +1,30 @@
+1. What question(s) are you trying to answer? (Domain situation)
+I was primarly looking to answer 3 questions, 
+-How many slaves disembarked in the New World
+-How many slaves did each of the major powers aim to embark to their respective colonies
+-How many slaves arrived to each of the major regions/colonies in the Atlantic World
+    -For this last question I was mainly interested in the english colonies of Jamaica and Barbados 
+    the Spanish colonies, of Cuba and Central America, and the French Colony of Saint Domingue/Haiti
+    Studying history I am primarly interested in these main areas, but also include more broad areas such as Africa 
+    Europe, Brazil, Rio De La Plata (Argentina/Uruguay) and The United States as Well as Suriname/Dutch Guiana 
+
+2. What data do you need to answer the question and did you need to perform any data 
+transformations? (Data/task abstraction) 
+I needed the current data on the amount of voyages and the locations that the voyages would go to. I also
+need to distinguish between slaves that embarked and slaves that disembarked. Survival rate did play a huge role in
+the process of transporting captives.
+The main transformations I needed to do are seperating by country distinguish embarkation and disembarkation data. I also needed
+to adding and subtracting of total slaves embarked/disembarked for all nations. I will also need the longitude and latitude
+of each of the major colonies/regions I am interested in.
+
+3. How did you choose to display your attributes? (Visual Encoding and Interaction 
+Idiom)
+I displayed the attributes using 3 main graphs
+-One for the total slaves disembarked in the Atlantic world as a Bar Chart With amount of slaves on the X axis,
+and Year on the Y-axis
+-One for embarkation data of each the major powers of Spain, Portugal, Great Britain, Netherlands, USA, and France over 
+time using a scatter plot. With each of the embarkation data as a point for the year to track the amount of slaves embarked 
+for each country over time
+-One for embarkation location for major colonies/regions that I was interested in. Using the longitude and latitude of each of the 
+major colonies/ regions I plot how many slaves arrived at the location with a dot between the years requested by the user
+
